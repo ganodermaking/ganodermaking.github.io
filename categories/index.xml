@@ -1,18 +1,45 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Categories on 周小猪的技术博客</title>
+    <title>Categories on 周小猪</title>
     <link>http://ganodermaking.github.io/categories/</link>
-    <description>Recent content in Categories on 周小猪的技术博客</description>
+    <description>Recent content in Categories on 周小猪</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 13 Jan 2021 15:33:14 +0800</lastBuildDate><atom:link href="http://ganodermaking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Golang</title>
+      <link>http://ganodermaking.github.io/categories/golang/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/categories/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Java</title>
+      <link>http://ganodermaking.github.io/categories/java/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/categories/java/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>中间件</title>
       <link>http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
       <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
       
       <guid>http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>算法</title>
+      <link>http://ganodermaking.github.io/categories/%E7%AE%97%E6%B3%95/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/categories/%E7%AE%97%E6%B3%95/</guid>
       <description></description>
     </item>
     

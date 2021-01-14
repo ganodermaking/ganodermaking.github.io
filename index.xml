@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>周小猪的技术博客</title>
+    <title>周小猪</title>
     <link>http://ganodermaking.github.io/</link>
-    <description>Recent content on 周小猪的技术博客</description>
+    <description>Recent content on 周小猪</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 13 Jan 2021 15:33:14 +0800</lastBuildDate><atom:link href="http://ganodermaking.github.io/index.xml" rel="self" type="application/rss+xml" />
@@ -13,7 +13,70 @@
       <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
       
       <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/</guid>
-      <description>使用一种称为 &lt;code&gt;倒排索引&lt;/code&gt; 的结构，它适用于快速的全文搜索。</description>
+      <description>Elasticsearch 是一个分布式可扩展的实时搜索和分析引擎，一个建立在全文搜索引擎 Apache Lucene(TM) 基础上的搜索引擎。使用一种称为 倒排索引 的结构，它适用于快速的全文搜索。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之Golang</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/</guid>
+      <description>不要通过共享内存来通信，而应该通过通信来共享内存。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之Java</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/</guid>
+      <description>Java 是由 Sun Microsystems 公司于 1995 年 5 月推出的 Java 面向对象程序设计语言和 Java 平台的总称。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之MongoDB</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/</guid>
+      <description>MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。 MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之MySQL</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/</guid>
+      <description>MySQL 是最流行的关系型数据库管理系统，在 WEB 应用方面 MySQL 是最好的 RDBMS(Relational Database Management System：关系数据库管理系统)应用软件之一。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之Redis</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/</guid>
+      <description>Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作数据库、缓存和消息中间件。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之Zookeeper</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/</guid>
+      <description>ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之算法</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/</guid>
+      <description>算法（Algorithm）是指解题方案的准确而完整的描述，是一系列解决问题的清晰指令，算法代表着用系统的方法描述解决问题的策略机制。</description>
     </item>
     
   </channel>

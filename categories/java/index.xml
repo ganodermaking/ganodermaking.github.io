@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Java on 周小猪</title>
+    <link>http://ganodermaking.github.io/categories/java/</link>
+    <description>Recent content in Java on 周小猪</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 13 Jan 2021 15:33:14 +0800</lastBuildDate><atom:link href="http://ganodermaking.github.io/categories/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>掌握核心技术之Java</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/</guid>
+      <description>Java 是由 Sun Microsystems 公司于 1995 年 5 月推出的 Java 面向对象程序设计语言和 Java 平台的总称。</description>
+    </item>
+    
+  </channel>
+</rss>

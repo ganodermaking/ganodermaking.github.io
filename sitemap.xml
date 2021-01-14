@@ -13,12 +13,52 @@
   </url>
   
   <url>
+    <loc>http://ganodermaking.github.io/tags/golang/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/categories/golang/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/tags/java/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/categories/java/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/tags/mongodb/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/tags/mysql/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://ganodermaking.github.io/post/</loc>
     <lastmod>2021-01-13T15:33:14+08:00</lastmod>
   </url>
   
   <url>
+    <loc>http://ganodermaking.github.io/tags/redis/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://ganodermaking.github.io/tags/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/tags/zookeeper/</loc>
     <lastmod>2021-01-13T15:33:14+08:00</lastmod>
   </url>
   
@@ -34,6 +74,51 @@
   
   <url>
     <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/tags/%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2021-01-13T15:33:14+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ganodermaking.github.io/categories/%E7%AE%97%E6%B3%95/</loc>
     <lastmod>2021-01-13T15:33:14+08:00</lastmod>
   </url>
   

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title> | 周小猪</title>
+    <meta property="og:title" content=" - 周小猪">
+    <meta property="og:type" content="article">
+        
+        
+    <meta name="Keywords" content="">
+    <meta name="description" content="">
+        
+    <meta name="author" content="">
+    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="http://ganodermaking.github.io/">
+                        周小猪
+                    </a>
+                
+                
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="http://ganodermaking.github.io/">首页</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title"></h1>
+        </header>
+        <date class="post-meta meta-date">
+            1年1月1日
+        </date>
+        
+        
+        
+        <div class="post-content">
+            <h1 id="算法">算法</h1>
+<ul>
+<li>冒泡算法</li>
+<li>漏桶算法</li>
+<li>令牌桶算法</li>
+<li>一致哈希算法</li>
+</ul>
+<h2 id="冒泡算法">冒泡算法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func sort(s []int) []int {
+	for i := 0; i &lt; len(s); i++ {
+		for j := 0; j &lt; len(s)-i-1; j++ {
+			if s[j] &gt; s[j+1] {
+				s[j], s[j+1] = s[j+1], s[j]
+			}
+		}
+	}
+	return s
+}
+</code></pre></div><h2 id="漏桶算法">漏桶算法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">type rateLimiter struct {
+	lock     *sync.Mutex
+	rate     float64   // 最大速率限制
+	balance  float64   // 漏桶的余量
+	limit    float64   // 漏桶的最大容量限制
+	lastTime time.Time // 上次检查的时间
+}
+
+func NewRateLimiter(rate, balance int) *rateLimiter {
+	return &amp;rateLimiter{
+		lock:     new(sync.Mutex),
+		rate:     float64(rate),
+		balance:  float64(balance),
+		limit:    float64(balance),
+		lastTime: time.Now(),
+	}
+}
+
+func (r *rateLimiter) Check() bool {
+	ok := false
+	r.lock.Lock()
+
+	now := time.Now()
+	dur := now.Sub(r.lastTime).Seconds()
+
+	r.lastTime = now
+	r.balance += dur * r.rate    // 漏桶流出water容量的水，自然漏桶的余量多出water
+
+	if r.balance &gt; r.limit {
+		r.balance = r.limit
+	}
+
+	if r.balance &gt;= 1 { // 漏桶余量足够容下当前的请求
+		r.balance -= 1
+		ok = true
+	}
+
+	r.lock.Unlock()
+	return ok
+}
+
+func main()  {
+	rateLimiter := NewRateLimiter(5, 1)
+
+	count := 0
+	for i := 0; i &lt; 1000; i++ {
+		if rateLimiter.Check() {
+			fmt.Println(i)
+			count++
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+</code></pre></div><h2 id="令牌桶算法">令牌桶算法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func pushToken(rate, limit int) chan struct{} {
+	ch := make(chan struct{}, limit)
+	ticker := time.NewTicker(time.Duration(1) * time.Second)
+	for i := 0; i &lt; limit; i++ {
+		ch &lt;- struct{}{}
+	}
+
+	go func() {
+		for {
+			for i := 0; i &lt; rate; i++ {
+				ch &lt;- struct{}{}
+			}
+			&lt;-ticker.C
+		}
+	}()
+	return ch
+}
+
+func popToken(bucket chan struct{}, n int) {
+	for i := 0; i &lt; n; i++ {
+		&lt;-bucket
+	}
+}
+
+func main() {
+	rate := 10
+	ch := pushToken(rate, 20)
+
+	for i := 0; i &lt;= 1000; i += rate {
+		popToken(ch, rate)
+		fmt.Println(i)
+	}
+}
+</code></pre></div><blockquote>
+<p>如果要让自己的系统不被打垮，用令牌桶。如果保证别人的系统不被打垮，用漏桶算法。</p>
+</blockquote>
+<h2 id="一致哈希算法">一致哈希算法</h2>
+<p>服务器节点计算Hash值，映射到环上。存储key计算Hash值，映射到环上，数据存储的位置是沿顺时针的方向找到的环上的第一个节点。就是普通取模哈希算法的改良版，哈希函数计算方法不变，只不过是通过构建环状的Hash空间代替普通的线性Hash空间。一致性哈希能把节点宕机造成的影响控制在顺时针相邻节点之间，避免对整个集群造成影响。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">const DefaultReplicas = 100
+
+type SortKeys []uint32
+
+func (sk SortKeys) Len() int {
+	return len(sk)
+}
+
+func (sk SortKeys) Less(i, j int) bool {
+	return sk[i] &lt; sk[j]
+}
+
+func (sk SortKeys) Swap(i, j int) {
+	sk[i], sk[j] = sk[j], sk[i]
+}
+
+type HashRing struct {
+	Nodes map[uint32]string
+	Keys  SortKeys
+	sync.RWMutex
+}
+
+func (hr *HashRing) New(nodes []string) {
+	if nodes == nil {
+		return
+	}
+
+	hr.Nodes = make(map[uint32]string)
+	hr.Keys = SortKeys{}
+	for _, node := range nodes {
+		for i := 0; i &lt; DefaultReplicas; i++ {
+			str := node + strconv.Itoa(i)
+			hr.Nodes[hr.hashStr(str)] = node
+			hr.Keys = append(hr.Keys, hr.hashStr(str))
+		}
+	}
+	sort.Sort(hr.Keys)
+}
+
+func (hr *HashRing) GetNode(key string) string {
+	hr.RLock()
+	defer hr.RUnlock()
+	hash := hr.hashStr(key)
+	i := hr.getPosition(hash)
+	return hr.Nodes[hr.Keys[i]]
+}
+
+func (hr *HashRing) hashStr(key string) uint32 {
+	return crc32.ChecksumIEEE([]byte(key))
+}
+
+func (hr *HashRing) getPosition(hash uint32) int {
+	i := sort.Search(len(hr.Keys), func(i int) bool {
+		return hr.Keys[i] &gt;= hash
+	})
+
+	if i &lt; len(hr.Keys) {
+		if i == len(hr.Keys) - 1 {
+			return 0
+		} else {
+			return i
+		}
+	} else {
+		return len(hr.Keys) - 1
+	}
+}
+</code></pre></div><blockquote>
+<p>普通哈希算法实现的缓存负载均衡存在扩展能力和容错能力差问题和一致性哈希算法也存在数据倾斜和节点雪崩。</p>
+</blockquote>
+
+        </div>
+
+        
+
+
+        
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="http://ganodermaking.github.io/">周小猪 By </a>
+        
+    </div>
+    <br />
+    <div>
+        <div class="github-badge">
+            <a href="https://gohugo.io/" target="_black" rel="nofollow"><span class="badge-subject">Powered by</span><span class="badge-value bg-blue">Hugo</span></a>
+        </div>
+        <div class="github-badge">
+            <a href="https://www.flysnow.org/" target="_black"><span class="badge-subject">Design by</span><span class="badge-value bg-brightgreen">飞雪无情</span></a>
+        </div>
+        <div class="github-badge">
+            <a href="https://github.com/flysnow-org/maupassant-hugo" target="_black"><span class="badge-subject">Theme</span><span class="badge-value bg-yellowgreen">Maupassant</span></a>
+        </div>
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="http://ganodermaking.github.io/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/" title="掌握核心技术之ElasticSearch">掌握核心技术之ElasticSearch</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/" title=""></a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="http://ganodermaking.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

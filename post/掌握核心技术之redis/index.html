@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title> | 周小猪</title>
+    <meta property="og:title" content=" - 周小猪">
+    <meta property="og:type" content="article">
+        
+        
+    <meta name="Keywords" content="">
+    <meta name="description" content="">
+        
+    <meta name="author" content="">
+    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="http://ganodermaking.github.io/">
+                        周小猪
+                    </a>
+                
+                
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="http://ganodermaking.github.io/">首页</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title"></h1>
+        </header>
+        <date class="post-meta meta-date">
+            1年1月1日
+        </date>
+        
+        
+        
+        <div class="post-content">
+            <h1 id="redis">Redis</h1>
+<ul>
+<li>SCAN命令</li>
+<li>GEO</li>
+<li>Bitmaps位图</li>
+<li>HyperLogLog</li>
+<li>布隆过滤器</li>
+<li>延时队列</li>
+<li>分布式锁</li>
+<li>Redis多线程</li>
+<li>持久化</li>
+<li>集群方式</li>
+</ul>
+<h2 id="scan命令">SCAN命令</h2>
+<p>用于迭代数据库中的数据库键，替换keys命令</p>
+<ul>
+<li>SSCAN 命令用于迭代集合键中的元素。</li>
+<li>HSCAN 命令用于迭代哈希键中的键值对。</li>
+<li>ZSCAN 命令用于迭代有序集合中的元素（包括元素成员和元素分值）。</li>
+</ul>
+<h2 id="geo">GEO</h2>
+<p>主要用于存储地理位置信息，并对存储的信息进行操作</p>
+<h2 id="bitmaps位图">Bitmaps位图</h2>
+<p>日活跃用户统计：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">redis.setbit(daily_active_users, user_id, 1) # 添加记录
+redis.bitcount(daily_active_users) # 统计记录
+</code></pre></div><p>应用场景：</p>
+<ul>
+<li>存储用户的签到情况</li>
+<li>文章已读或未读情况</li>
+<li>统计今日登录的用户数</li>
+</ul>
+<h2 id="hyperloglog">HyperLogLog</h2>
+<p>HyperLogLog其实是一种算法，它是用来估算一个集合的基数的。</p>
+<p>应用场景：</p>
+<ul>
+<li>统计页面访问的UV数</li>
+<li>统计网站的ip数</li>
+</ul>
+<h2 id="布隆过滤器">布隆过滤器</h2>
+<p>原本有10亿个号码，现在又来了10万个号码，要快速准确判断这10万个号码是否在10亿个号码库中。</p>
+<ul>
+<li>bf.add 添加元素到布隆过滤器</li>
+<li>bf.exists 判断某个元素是否在布隆过滤器中</li>
+</ul>
+<blockquote>
+<p>布隆过滤器说某个元素在，可能会被误判。布隆过滤器说某个元素不在，那么一定不在。</p>
+</blockquote>
+<h2 id="延时队列">延时队列</h2>
+<p>通过有序集合(sorted set)实现</p>
+<ul>
+<li>zadd key score1 value1 赋值</li>
+<li>zrevrange key start end withscores 查询成员分数从大到小顺序的索引 start 到 end 的所有成员。</li>
+<li>zrem key value1 value2 删除指定元素</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">delayFunc</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">message</span> <span style="color:#66d9ef">interface</span>{})
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Process</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">queue</span>       <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">job</span>         <span style="color:#a6e22e">delayFunc</span>
+	<span style="color:#a6e22e">concurrency</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewConsumer</span>(<span style="color:#a6e22e">queue</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">delayFunc</span> <span style="color:#a6e22e">delayFunc</span>, <span style="color:#a6e22e">concurrency</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Process</span>{
+		<span style="color:#a6e22e">queue</span>:       <span style="color:#a6e22e">queue</span>,
+		<span style="color:#a6e22e">job</span>:         <span style="color:#a6e22e">delayFunc</span>,
+		<span style="color:#a6e22e">concurrency</span>: <span style="color:#a6e22e">concurrency</span>,
+	}
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewProducer</span>(<span style="color:#a6e22e">queue</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Process</span>{
+		<span style="color:#a6e22e">queue</span>: <span style="color:#a6e22e">queue</span>,
+	}
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">getTask</span>() ([]<span style="color:#a6e22e">redis2</span>.<span style="color:#a6e22e">Z</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">opt</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis2</span>.<span style="color:#a6e22e">ZRangeBy</span>{
+		<span style="color:#a6e22e">Min</span>:    <span style="color:#e6db74">&#34;0&#34;</span>,
+		<span style="color:#a6e22e">Max</span>:    <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">FormatInt</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Local</span>().<span style="color:#a6e22e">UnixNano</span>(), <span style="color:#ae81ff">10</span>),
+		<span style="color:#a6e22e">Offset</span>: <span style="color:#ae81ff">0</span>,
+		<span style="color:#a6e22e">Count</span>:  <span style="color:#ae81ff">1</span>,
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Cli</span>.<span style="color:#a6e22e">ZRangeByScoreWithScores</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">queue</span>, <span style="color:#a6e22e">opt</span>).<span style="color:#a6e22e">Result</span>()
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">delTask</span>(<span style="color:#a6e22e">member</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">int64</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Cli</span>.<span style="color:#a6e22e">ZRem</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">queue</span>, <span style="color:#a6e22e">member</span>).<span style="color:#a6e22e">Result</span>()
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">AddTask</span>(<span style="color:#a6e22e">members</span> <span style="color:#a6e22e">redis2</span>.<span style="color:#a6e22e">Z</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Cli</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">queue</span>, <span style="color:#a6e22e">members</span>).<span style="color:#a6e22e">Err</span>()
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">ConsumerTask</span>() {
+	<span style="color:#66d9ef">for</span> {
+		<span style="color:#a6e22e">tasks</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">getTask</span>()
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;ConsumerTask GetTask err: %s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+		}
+
+		<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">tasks</span>) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
+			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1</span>)
+			<span style="color:#66d9ef">continue</span>
+		}
+
+		<span style="color:#a6e22e">del</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">delTask</span>(<span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;ConsumerTask DelTask err: %s, Member: %s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>(), <span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
+			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1</span>)
+			<span style="color:#66d9ef">continue</span>
+		}
+
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">del</span> &gt; <span style="color:#ae81ff">0</span> {
+			<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;【%d】ConsumerTask ReceiveMessage: %v&#34;</span>, <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">GetGoroutineID</span>(), <span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
+			<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">job</span>(<span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
+		}
+	}
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">Run</span>() {
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">concurrency</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">ConsumerTask</span>()
+	}
+	<span style="color:#66d9ef">select</span> {}
+}
+</code></pre></div><h2 id="分布式锁">分布式锁</h2>
+<p>分布式锁一般有三种实现方式：1. 数据库乐观锁；2. 基于Redis的分布式锁；3. 基于ZooKeeper的分布式锁。</p>
+<h3 id="数据库乐观锁">数据库乐观锁</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查询出商品信息
+select (quantity,version) from items where id = 100;
+// step2: 根据商品信息生成订单
+insert into orders(id, item_id) values(null, 100);
+// step3: 修改商品的库存
+update items set quantity = quantity - 1, version = version + 1 where id = 100 and version = #{version};
+</code></pre></div><blockquote>
+<p>如果每次访问冲突概率小于20%，推荐使用乐观锁，否则使用悲观锁。乐观锁的重试次数不得小于3次。</p>
+</blockquote>
+<h3 id="基于redis的分布式锁">基于Redis的分布式锁</h3>
+<ul>
+<li>加锁：判断 key 是否存在、保存 key-value、设置 key 的过期时间</li>
+<li>解锁：判断 key 是否存在、判断是否自己持有锁、删除 key-value</li>
+</ul>
+<p>注意事项：</p>
+<ul>
+<li>如果key存在，但是没有剩余时间。</li>
+<li>加锁的时候的 value 必须是一个全局唯一的字符串。</li>
+<li>防止删除重新加锁的 key</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Rds</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Client</span>         <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Client</span>
+	<span style="color:#a6e22e">AcquireTimeout</span> <span style="color:#66d9ef">int32</span>
+	<span style="color:#a6e22e">LockTimeout</span>    <span style="color:#66d9ef">int32</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewRds</span>(<span style="color:#a6e22e">host</span>, <span style="color:#a6e22e">passwd</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">db</span> <span style="color:#66d9ef">int</span>) (<span style="color:#a6e22e">rds</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Rds</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">rdsOpt</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Addr</span>:     <span style="color:#a6e22e">host</span>,
+		<span style="color:#a6e22e">Password</span>: <span style="color:#a6e22e">passwd</span>,
+		<span style="color:#a6e22e">DB</span>:       <span style="color:#a6e22e">db</span>,
+	}
+	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#a6e22e">rdsOpt</span>)
+	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Ping</span>().<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">rds</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Rds</span>{<span style="color:#a6e22e">Client</span>: <span style="color:#a6e22e">client</span>, <span style="color:#a6e22e">AcquireTimeout</span>: <span style="color:#ae81ff">10</span>, <span style="color:#a6e22e">LockTimeout</span>: <span style="color:#ae81ff">10</span>}
+	<span style="color:#66d9ef">return</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Rds</span>) <span style="color:#a6e22e">Lock</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">identifier</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">bool</span>) {
+	<span style="color:#a6e22e">identifier</span> = <span style="color:#a6e22e">uuid</span>.<span style="color:#a6e22e">NewV4</span>().<span style="color:#a6e22e">String</span>()
+	<span style="color:#a6e22e">lockName</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;lock:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">key</span>
+	<span style="color:#a6e22e">end</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">AcquireTimeout</span>))
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Before</span>(<span style="color:#a6e22e">end</span>) {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">SetNX</span>(<span style="color:#a6e22e">lockName</span>, <span style="color:#a6e22e">identifier</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">LockTimeout</span>)).<span style="color:#a6e22e">Val</span>() {
+			<span style="color:#75715e">// 如果key不存在，并成功设置了key
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">b</span> = <span style="color:#66d9ef">true</span>
+			<span style="color:#66d9ef">return</span>
+		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">TTL</span>(<span style="color:#a6e22e">lockName</span>).<span style="color:#a6e22e">Val</span>() <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+			<span style="color:#75715e">// 如果key存在，但是没有剩余时间
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">Expire</span>(<span style="color:#a6e22e">lockName</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">LockTimeout</span>))
+		}
+		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Microsecond</span>)
+	}
+	<span style="color:#66d9ef">return</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Rds</span>) <span style="color:#a6e22e">UnLock</span>(<span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">identifier</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">b</span> <span style="color:#66d9ef">bool</span>) {
+	<span style="color:#a6e22e">lockName</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;lock:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">key</span>
+	<span style="color:#a6e22e">txf</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">tx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Tx</span>) <span style="color:#66d9ef">error</span> {
+		<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">lockName</span>).<span style="color:#a6e22e">Result</span>()
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+
+		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Pipelined</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">pipe</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Pipeliner</span>) <span style="color:#66d9ef">error</span> {
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">v</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">identifier</span> {
+				<span style="color:#a6e22e">pipe</span>.<span style="color:#a6e22e">Del</span>(<span style="color:#a6e22e">lockName</span>)
+				<span style="color:#a6e22e">b</span> = <span style="color:#66d9ef">true</span>
+			}
+			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+		})
+
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">for</span> {
+		<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">txf</span>, <span style="color:#a6e22e">lockName</span>) <span style="color:#75715e">// 在事务执行之前被其他命令所改动，那么事务将被打断
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> { <span style="color:#75715e">// 解锁成功，跳出循环
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">break</span>
+		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">TxFailedErr</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+		}
+	}
+	<span style="color:#66d9ef">return</span>
+}
+</code></pre></div><h3 id="基于zookeeper的分布式锁">基于ZooKeeper的分布式锁</h3>
+<p>ZooKeeper分布式锁是基于临时顺序节点来实现的</p>
+<ul>
+<li>临时顺序节点自动释放锁</li>
+<li>监听前一个节点的变化</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func main() {
+	c, _, err := zk.Connect([]string{&#34;127.0.0.1&#34;}, time.Second) //*10)
+	if err != nil {
+		panic(err)
+	}
+	l := zk.NewLock(c, &#34;/lock&#34;, zk.WorldACL(zk.PermAll))
+	err = l.Lock()
+	if err != nil {
+		panic(err)
+	}
+	println(&#34;lock success, do your business logic&#34;)
+
+	time.Sleep(time.Second * 10)
+
+	l.Unlock()
+	println(&#34;unlock success, finish business logic&#34;)
+}
+</code></pre></div><h2 id="多线程">多线程</h2>
+<p>Redis支持多线程主要就是两个原因：</p>
+<ul>
+<li>可以充分利用服务器CPU资源，目前主线程只能利用一个核。</li>
+<li>多线程任务可以分摊Redis同步IO读写负荷。</li>
+</ul>
+<blockquote>
+<p>Redis的多线程部分只是用来处理网络数据的读写和协议解析，执行命令仍然是单线程顺序执行。</p>
+</blockquote>
+<p>IO多路复用：
+多路指的是多个Socket连接，复用指的是复用一个线程。多路复用主要有三种技术：Select，Poll，Epoll，Epoll是最新的也是目前最好的多路复用技术。</p>
+<blockquote>
+<p>采用多路I/O复用技术和内存操作造就Redis具有很高的吞吐量。</p>
+</blockquote>
+<h3 id="单线程的redis为什么这么快">单线程的Redis为什么这么快</h3>
+<ul>
+<li>纯内存操作</li>
+<li>单线程操作，避免了频繁的上下文切换</li>
+<li>采用了非阻塞I/O多路复用机制</li>
+</ul>
+<h2 id="持久化">持久化</h2>
+<p>快照形式RDB和增量文件AOF。AOF是一种追加执行命令的形式，它跟RDB的区别是，AOF并不是把数据保存下来，而是保存执行的动作。</p>
+<blockquote>
+<p>如果appendonly.aof和dump.rdb文件同时存在，Redis是以AOF为优先的，毕竟AOF相对RDB来说在出现异常的情况下保存的数据更加完整。</p>
+</blockquote>
+<h3 id="快照rdb">快照RDB</h3>
+<h4 id="自动重写rdb快照文件">自动重写rdb快照文件</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">save <span style="color:#ae81ff">900</span> <span style="color:#ae81ff">1</span>
+save <span style="color:#ae81ff">300</span> <span style="color:#ae81ff">10</span>
+save <span style="color:#ae81ff">60</span> <span style="color:#ae81ff">10000</span>
+</code></pre></div><blockquote>
+<p>多少时间以内多少个key发生变化就会触发快照</p>
+</blockquote>
+<h4 id="手动重写rdb快照文件">手动重写rdb快照文件</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">./redis-cli -a pwd bgsave
+</code></pre></div><blockquote>
+<p>save命令会堵塞主进程，bgsave生成一个子进程创建rdb文件。</p>
+</blockquote>
+<h3 id="增量文件aof">增量文件AOF</h3>
+<h4 id="自动重写aof文件">自动重写aof文件</h4>
+<p>aof的触发条件配置项，下面配置三选一</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">appendfsync always   <span style="color:#75715e"># 每次接收到命令都写入磁盘，保证数据安全性，但比较消耗服务器资源</span>
+appendfsync everysec <span style="color:#75715e"># 每秒钟向磁盘中写入一次，推荐使用此配置</span>
+appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最好</span>
+</code></pre></div><h4 id="手动重写aof文件">手动重写aof文件</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">./redis-cli -a pwd bgrewriteaof
+</code></pre></div><h2 id="集群方式">集群方式</h2>
+<p>redis有三种集群方式：主从复制，哨兵模式和集群模式。</p>
+<h3 id="主从复制">主从复制</h3>
+<p>当从数据库启动时，会向主数据库发送sync命令，主数据库接收到sync后开始在后台保存快照rdb，在保存快照期间收到的命令缓存起来，当快照完成时，主数据库会将快照和缓存的命令一块发送给从数据库。复制初始化结束。之后，主每收到1个命令就同步发送给从。</p>
+<h3 id="哨兵模式">哨兵模式</h3>
+<p>在主从复制的基础上，哨兵实现自动化的故障恢复。</p>
+<blockquote>
+<p>配置哨兵监控一个系统时，只需要配置其监控主数据库即可，哨兵会自动发现所有复制该主数据库的从数据库。</p>
+</blockquote>
+<h3 id="集群模式">集群模式</h3>
+<p>插槽（slot）的取值范围是：0-16383。当我们的存取的key到达的时候，redis会根据crc16的算法得出一个结果，然后把结果对 16384 求余数，这样每个 key 都会对应一个编号在 0-16383 之间的哈希槽，通过这个值，去找到对应的插槽所对应的节点，然后直接自动跳转到这个对应的节点上进行存取操作。</p>
+
+        </div>
+
+        
+
+
+        
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="http://ganodermaking.github.io/">周小猪 By </a>
+        
+    </div>
+    <br />
+    <div>
+        <div class="github-badge">
+            <a href="https://gohugo.io/" target="_black" rel="nofollow"><span class="badge-subject">Powered by</span><span class="badge-value bg-blue">Hugo</span></a>
+        </div>
+        <div class="github-badge">
+            <a href="https://www.flysnow.org/" target="_black"><span class="badge-subject">Design by</span><span class="badge-value bg-brightgreen">飞雪无情</span></a>
+        </div>
+        <div class="github-badge">
+            <a href="https://github.com/flysnow-org/maupassant-hugo" target="_black"><span class="badge-subject">Theme</span><span class="badge-value bg-yellowgreen">Maupassant</span></a>
+        </div>
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="http://ganodermaking.github.io/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/" title="掌握核心技术之ElasticSearch">掌握核心技术之ElasticSearch</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title=""></a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/" title=""></a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="http://ganodermaking.github.io/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

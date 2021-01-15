@@ -102,6 +102,21 @@
 <li>如果自己是第一个节点，加锁成功；如果不是，就对自己上一个节点加监听器。</li>
 <li>只要上一个节点释放锁，自己就排到前面去了，相当于是一个排队机制。</li>
 </ul>
+<h2 id="选举原理">选举原理</h2>
+<p>当集群中 leader 服务器出现宕机或者不可用情况时，整个集群无法对外提供服务，进入新一轮的 leader 选举。</p>
+<ul>
+<li>领导者（Leader）：负责投票的发起和决议，更新服务状态。</li>
+<li>跟随者（Follower）：Follower用于接受客户端请求并向客户端返回结果，在选举过程中参与投票。</li>
+<li>观察者（ObServer）：ObServer可接收客户端连接，将写请求发送给Leader节点。但ObServer不参与投票过程，只同步Leader的状态。ObServer目的是为了扩展系统，提高读取效率。</li>
+</ul>
+<p>使用（myid，zxid）进行投票，优先级规则如下：</p>
+<ul>
+<li>zxid 比较大的服务器作为 leader 服务器</li>
+<li>如果 zxid 相同，myid 比较大的服务器作为 leader 服务器</li>
+</ul>
+<blockquote>
+<p>服务器 ID(myid)：编号越大在选举算法中权重越大；事务 ID(zxid)：值越大说明数据越新，权重越大。</p>
+</blockquote>
 <h2 id="zookeeper和eureka区别">ZooKeeper和Eureka区别</h2>
 <p>zookeeper和eureka就是CAP定理中的实现，eureka(保证AP)，zookeeper(保证CP)。</p>
 <ul>

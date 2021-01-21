@@ -85,15 +85,33 @@
         
         <div class="post-content">
             <p>MySQL 是最流行的关系型数据库管理系统，在 WEB 应用方面 MySQL 是最好的 RDBMS(Relational Database Management System：关系数据库管理系统)应用软件之一。</p>
+<p>主要集中在如下核心技术：</p>
 <ul>
 <li>连接池</li>
-<li>MyISAM与InnoDB索引比较</li>
+<li>锁</li>
+<li>事务</li>
+</ul>
+<h2 id="架构图">架构图</h2>
+<p>
+        <img class="mx-auto" alt="" src="/images/mysql%e6%9e%b6%e6%9e%84%e5%9b%be.png" />   
+    </p>
+<p>Server层：</p>
+<ul>
+<li>连接器：管理连接，权限验证</li>
+<li>查询缓存： 命中则直接返回</li>
+<li>分析器：词法分析(识别关键字)，语法分析(判断语法)</li>
+<li>优化器： 执行计划生成，索引选择</li>
+<li>执行器： 操作引擎，返回结果</li>
 </ul>
 <h2 id="连接池">连接池</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">db.SetMaxIdleConns<span style="color:#f92672">(</span>10<span style="color:#f92672">)</span>                   // 最大空闲连接数
 db.SetMaxOpenConns<span style="color:#f92672">(</span>30<span style="color:#f92672">)</span>                   // 最大连接数
-db.SetConnMaxLifetime<span style="color:#f92672">(</span>time.Second * 300<span style="color:#f92672">)</span> // 设置连接空闲超时
-</code></pre></div><h2 id="悲观锁">悲观锁</h2>
+db.SetConnMaxLifetime<span style="color:#f92672">(</span>time.Second * 300<span style="color:#f92672">)</span> // 设置连接最大空闲超时
+</code></pre></div><blockquote>
+<p>长链接的缺点：容易占用内存，因为MySQL在执行过程中临时使用的内存是管理在连接对象里面的，这些资源会在连接断开的时候才释放。所以如果长连接累积下来，可能导致内存占用太大，被系统强行杀掉（OOM）。</p>
+</blockquote>
+<h2 id="锁">锁</h2>
+<h3 id="悲观锁">悲观锁</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查出商品状态
 select quantity from items where id = 100 for update;
 // step2: 根据商品信息生成订单
@@ -103,7 +121,7 @@ update items set quantity = quantity - 2 where id = 100;
 </code></pre></div><blockquote>
 <p>MySQL中用悲观锁务必须确定走了索引，而不是全表扫描，否则将会将整个数据表锁住。</p>
 </blockquote>
-<h2 id="乐观锁">乐观锁</h2>
+<h3 id="乐观锁">乐观锁</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查询出商品信息
 select (quantity,version) from items where id = 100;
 // step2: 根据商品信息生成订单
@@ -113,7 +131,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </code></pre></div><blockquote>
 <p>如果每次访问冲突概率小于20%，推荐使用乐观锁，否则使用悲观锁。乐观锁的重试次数不得小于3次。</p>
 </blockquote>
-<h2 id="表锁">表锁</h2>
+<h3 id="表锁">表锁</h3>
 <p>一种是lock table的表锁，一种是元数据锁 metadata Lock。</p>
 <h3 id="在线ddl方案">在线DDL方案</h3>
 <p>SQL语言一共分为4大类：数据定义语言DDL，数据操纵语言DML，数据查询语言DQL，数据控制语言DCL。</p>
@@ -185,12 +203,28 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </tr>
 </tbody>
 </table>
-<h2 id="myisam">MyISAM</h2>
-<p>每张MyISAM表被存放在三个文件，.frm表示定义文件，.myd表示数据文件，.myi表示索引文件。</p>
-<h2 id="myisam与innodb索引比较">MyISAM与InnoDB索引比较</h2>
+<h2 id="myisam与innodb存储文件的区别">MyISAM与InnoDB存储文件的区别？</h2>
+<ul>
+<li>每张MyISAM表被存放在三个文件，.frm表示定义文件，.myd表示数据文件，.myi表示索引文件。</li>
+<li>每张InnoDB表被存放在两个文件，.frm表示定义文件，.idb表示数据和索引文件。</li>
+</ul>
+<h2 id="myisam与innodb索引本质区别">MyISAM与InnoDB索引本质区别？</h2>
 <ul>
 <li>MyISAM的主键和普通索引的data域都储存的是数据的地址。</li>
 <li>InnoDB的主键的data域储存数据，普通索引data域储存主键ID。</li>
+</ul>
+<h2 id="为什么建议mysql列属性尽量用not-null">为什么建议MySQL列属性尽量用NOT NULL？</h2>
+<ul>
+<li>NOT IN、!= 等负向条件查询时，不会返回有 NULL 值的列</li>
+<li>使用 concat 函数拼接时，首先要对各个字段进行非 NULL 判断，否则只要任何一个字段为空都会造成拼接的结果为 NULL</li>
+<li>当用count函数进行统计时，NULL 列不会计入统计</li>
+<li>NULL 列需要更多的存储空间，一般需要一个额外的字节作为判断是否为 NULL 的标志位</li>
+</ul>
+<p>注意事项：</p>
+<ul>
+<li>通常情况下最好指定列为NOT NULL，除非真的需要存储NULL值</li>
+<li>字段尽可能用NOT NULL，而不是NULL，除非特殊情况</li>
+<li>通常把可为NULL的列改为NOT NULL带来的性能提升比较小</li>
 </ul>
 
         </div>
@@ -206,13 +240,13 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/">掌握核心技术之ElasticSearch</a></li>
         
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/">掌握核心技术之Eureka</a></li>
+        
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/">掌握核心技术之Golang</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
-        
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/">掌握核心技术之Redis</a></li>
         
     </ul>
 </div>
@@ -295,6 +329,10 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/" title="掌握核心技术之Eureka">掌握核心技术之Eureka</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/" title="掌握核心技术之Golang">掌握核心技术之Golang</a>
     </li>
     
@@ -335,7 +373,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (5)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (6)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E7%AE%97%E6%B3%95/">算法 (1)</a></li>
     
@@ -347,6 +385,8 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <div class="tagcloud">
     
     <a href="http://ganodermaking.github.io/tags/elasticsearch/">ElasticSearch</a>
+    
+    <a href="http://ganodermaking.github.io/tags/eureka/">Eureka</a>
     
     <a href="http://ganodermaking.github.io/tags/golang/">Golang</a>
     

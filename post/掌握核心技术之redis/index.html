@@ -301,6 +301,37 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 	}
 	<span style="color:#66d9ef">return</span>
 }
+</code></pre></div><p>另外一个版本：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rdb</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Client</span>
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ctx</span> = <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">mutex</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Init</span>() {
+	<span style="color:#a6e22e">rdb</span> = <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Addr</span>:     <span style="color:#e6db74">&#34;localhost:6379&#34;</span>,
+		<span style="color:#a6e22e">Password</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+		<span style="color:#a6e22e">DB</span>:       <span style="color:#ae81ff">0</span>,
+	})
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Lock</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">bool</span> {
+	<span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>()
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Unlock</span>()
+	<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">SetNX</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">10</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">result</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">UnLock</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">int64</span> {
+	<span style="color:#a6e22e">nums</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">Del</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">nums</span>
+}
 </code></pre></div><h3 id="基于zookeeper的分布式锁">基于ZooKeeper的分布式锁</h3>
 <p>ZooKeeper分布式锁是基于临时顺序节点来实现的</p>
 <ul>
@@ -395,13 +426,13 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/">掌握核心技术之ElasticSearch</a></li>
         
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/">掌握核心技术之Eureka</a></li>
+        
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/">掌握核心技术之Golang</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
-        
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/">掌握核心技术之MySQL</a></li>
         
     </ul>
 </div>
@@ -484,6 +515,10 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/" title="掌握核心技术之Eureka">掌握核心技术之Eureka</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/" title="掌握核心技术之Golang">掌握核心技术之Golang</a>
     </li>
     
@@ -524,7 +559,7 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (5)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (6)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E7%AE%97%E6%B3%95/">算法 (1)</a></li>
     
@@ -536,6 +571,8 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
 <div class="tagcloud">
     
     <a href="http://ganodermaking.github.io/tags/elasticsearch/">ElasticSearch</a>
+    
+    <a href="http://ganodermaking.github.io/tags/eureka/">Eureka</a>
     
     <a href="http://ganodermaking.github.io/tags/golang/">Golang</a>
     

@@ -99,6 +99,7 @@
 <li>sync</li>
 <li>垃圾回收</li>
 <li>pprof</li>
+<li>slice 、map、chan</li>
 </ul>
 <h2 id="跨平台">跨平台</h2>
 <ul>
@@ -559,13 +560,55 @@ v.Elem().FieldByName(&quot;Score&quot;).SetFloat(99.9) // 通过字段名称赋�
 	}
 	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
 }
-</code></pre></div><h3 id="垃圾回收">垃圾回收</h3>
+</code></pre></div><h2 id="垃圾回收">垃圾回收</h2>
+<h3 id="触发gc的机制">触发GC的机制</h3>
+<ol>
+<li>在申请内存的时候，检查当前已分配的内存是否大于上次GC后的内存的2倍</li>
+<li>监控线程发现上次GC的时间已经超过两分钟</li>
+<li>手动：runtime.gc()</li>
+</ol>
+<h3 id="三色标记">三色标记</h3>
+<ul>
+<li>灰色：对象已被标记，但这个对象包含的子对象未标记</li>
+<li>黑色：对象已被标记，且这个对象包含的子对象也已标记</li>
+<li>白色：对象未被标记</li>
+</ul>
+<p>GC步骤：</p>
+<ol>
+<li>首先创建三个集合：白、灰、黑。</li>
+<li>将所有对象放入白色集合中。</li>
+<li>然后从根节点开始遍历所有对象，把遍历到的对象从白色集合放入灰色集合。</li>
+<li>之后遍历灰色集合，将灰色对象引用的对象从白色集合放入灰色集合，之后将此灰色对象放入黑色集合</li>
+<li>重复4直到灰色中无任何对象</li>
+<li>通过write-barrier检测对象有变化，重复以上操作</li>
+<li>收集所有白色对象（垃圾）</li>
+</ol>
 <h3 id="pprof">pprof</h3>
 <p>pprof 是用于可视化和分析性能分析数据的工具</p>
 <ul>
 <li>CPU性能分析</li>
 <li>内存性能优化</li>
 </ul>
+<h2 id="slice-mapchan">slice 、map、chan</h2>
+<ul>
+<li>slice本身是一个结构体，而不是一个指针，其底层实现是指向数组的指针。</li>
+<li>map返回的一个指针，底层实现是hashmap，并采用链地址方法解决hash冲突的。</li>
+</ul>
+<blockquote>
+<p>向切片新增一个元素时，若该切片容量已满，会首先根据切片容量进行判断，小于1024字节扩容为原有容量的2倍，大于1024字节扩容为原有容量的1.25倍。</p>
+</blockquote>
+<p>作为参数的比较：</p>
+<ul>
+<li>函数内部可以修改slice(指向同一地址)，append操作不可以(返回一个新的slice)；slice内部实现是指向数组的指针。</li>
+<li>函数内部可以修改map；makemap的返回值为一个hmap类型的指针。</li>
+<li>函数内部可以修改chan；makechan的返回值为一个hchan类型的指针。</li>
+</ul>
+<blockquote>
+<p>函数参数都是值传递，传入函数内部会对其拷贝一份。</p>
+</blockquote>
+<h2 id="gmp模型">GMP模型</h2>
+<p>线程想运行任务就得获取P，从P的本地队列获取G，P队列为空时，M也会尝试从全局队列拿一批G放到P的本地队列，或从其他P的本地队列偷一半放到自己P的本地队列。M运行G，G执行之后，M会从P获取下一个G，不断重复下去。</p>
+<p>线程是运行goroutine的实体，调度器的功能是把可运行的goroutine分配到工作线程上。</p>
 
         </div>
 
@@ -580,13 +623,13 @@ v.Elem().FieldByName(&quot;Score&quot;).SetFloat(99.9) // 通过字段名称赋�
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/">掌握核心技术之ElasticSearch</a></li>
         
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/">掌握核心技术之Eureka</a></li>
+        
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/">掌握核心技术之MySQL</a></li>
-        
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/">掌握核心技术之Redis</a></li>
         
     </ul>
 </div>
@@ -669,6 +712,10 @@ v.Elem().FieldByName(&quot;Score&quot;).SetFloat(99.9) // 通过字段名称赋�
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/" title="掌握核心技术之Eureka">掌握核心技术之Eureka</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/" title="掌握核心技术之Golang">掌握核心技术之Golang</a>
     </li>
     
@@ -709,7 +756,7 @@ v.Elem().FieldByName(&quot;Score&quot;).SetFloat(99.9) // 通过字段名称赋�
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (5)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (6)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E7%AE%97%E6%B3%95/">算法 (1)</a></li>
     
@@ -721,6 +768,8 @@ v.Elem().FieldByName(&quot;Score&quot;).SetFloat(99.9) // 通过字段名称赋�
 <div class="tagcloud">
     
     <a href="http://ganodermaking.github.io/tags/elasticsearch/">ElasticSearch</a>
+    
+    <a href="http://ganodermaking.github.io/tags/eureka/">Eureka</a>
     
     <a href="http://ganodermaking.github.io/tags/golang/">Golang</a>
     

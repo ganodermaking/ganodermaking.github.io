@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Eureka on 周小猪</title>
+    <link>http://ganodermaking.github.io/tags/eureka/</link>
+    <description>Recent content in Eureka on 周小猪</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 13 Jan 2021 15:33:14 +0800</lastBuildDate><atom:link href="http://ganodermaking.github.io/tags/eureka/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>掌握核心技术之Eureka</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/</guid>
+      <description>ZooKeeper注册中心集群搭建后，集群中各节点呈现主从关系，集群中只有主节点对外提供服务的注册和发现功能，从节点相当于备份节点，只有主节点宕机时，从节点会选举出一个新的主节点，继续提供服务的注册和发现功能。而Eureka Server注册中心集群中每个节点都是平等的，集群中的所有节点同时对外提供服务的发现和注册等功能。</description>
+    </item>
+    
+  </channel>
+</rss>

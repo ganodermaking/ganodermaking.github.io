@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>微服务 on 周小猪</title>
+    <link>http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/</link>
+    <description>Recent content in 微服务 on 周小猪</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 13 Jan 2021 15:33:14 +0800</lastBuildDate><atom:link href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>掌握核心技术之微服务</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1/</guid>
+      <description>服务网关 服务网关 = 路由转发 + 过滤器  路由转发：接收一切外界请求，转发到后端的微服务上去； 过滤器：在服务网关中可以完成一系列的横切功能，例如权限校验、限流以及监控等。  注册中心  Eureka：支持AP，保证高可用。 Zookeeper：支持CP，保证强一致性。 Nacos：同时支持AP和CP，同时还支持配置中心。  长轮询 服务端收到客户端发来的请求后不直接响应，而是将请求hold住一段时间，在这段时间内如果数据有变化，服务端才会响应，如果没有变化则在到达一定的时间后才返回请求。</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -106,7 +106,16 @@
 </ul>
 <h2 id="geo">GEO</h2>
 <p>主要用于存储地理位置信息，并对存储的信息进行操作</p>
-<h2 id="bitmaps位图">Bitmaps位图</h2>
+<h4 id="geoadd">geoadd</h4>
+<p>geoadd 用于存储指定的地理空间位置，可以将一个或多个经度(longitude)、纬度(latitude)、位置名称(member)添加到指定的 key 中。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">GEOADD key longitude latitude member
+</code></pre></div><h4 id="geopos">geopos</h4>
+<p>geopos 用于从给定的 key 里返回所有指定名称(member)的位置（经度和纬度），不存在的返回 nil。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">GEOPOS key member
+</code></pre></div><h4 id="geodist">geodist</h4>
+<p>geodist 用于返回两个给定位置之间的距离。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">GEODIST key member1 member2 <span style="color:#f92672">[</span>m|km|ft|mi<span style="color:#f92672">]</span>
+</code></pre></div><h2 id="bitmaps位图">Bitmaps位图</h2>
 <p>日活跃用户统计：</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">redis.setbit(daily_active_users, user_id, 1) # 添加记录
 redis.bitcount(daily_active_users) # 统计记录
@@ -116,7 +125,7 @@ redis.bitcount(daily_active_users) # 统计记录
 <li>文章已读或未读情况</li>
 <li>统计今日登录的用户数</li>
 </ul>
-<h2 id="hyperloglog">HyperLogLog</h2>
+<h2 id="hyperloglog基数">HyperLogLog(基数)</h2>
 <p>HyperLogLog其实是一种算法，它是用来估算一个集合的基数的。</p>
 <p>应用场景：</p>
 <ul>
@@ -132,6 +141,13 @@ redis.bitcount(daily_active_users) # 统计记录
 <blockquote>
 <p>布隆过滤器说某个元素在，可能会被误判。布隆过滤器说某个元素不在，那么一定不在。</p>
 </blockquote>
+<h4 id="布隆过滤器原理">布隆过滤器原理</h4>
+<p>当要向布隆过滤器中添加一个元素key时，我们通过多个hash函数，算出多个值，然后将多个值所在的方格置为1。</p>
+<h4 id="布隆过滤器优缺点">布隆过滤器优缺点</h4>
+<ul>
+<li>优点：优点很明显，二进制组成的数组，占用内存极少，并且插入和查询速度都足够快。</li>
+<li>缺点：随着数据的增加，误判率会增加；无法判断数据一定存在；还有一个重要缺点，无法删除数据。</li>
+</ul>
 <h2 id="延时队列">延时队列</h2>
 <p>通过有序集合(sorted set)实现</p>
 <ul>
@@ -543,6 +559,10 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/" title="掌握核心技术之算法">掌握核心技术之算法</a>
     </li>
     
@@ -561,7 +581,11 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
     
     <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (6)</a></li>
     
+    <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
+    
     <li><a href="http://ganodermaking.github.io/categories/%E7%AE%97%E6%B3%95/">算法 (1)</a></li>
+    
+    <li><a href="http://ganodermaking.github.io/categories/%E7%BD%91%E7%BB%9C/">网络 (1)</a></li>
     
 </ul>
     </section>

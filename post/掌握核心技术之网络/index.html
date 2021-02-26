@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
 
-    <title>掌握核心技术之算法 | 周小猪</title>
-    <meta property="og:title" content="掌握核心技术之算法 - 周小猪">
+    <title>掌握核心技术之网络 | 周小猪</title>
+    <meta property="og:title" content="掌握核心技术之网络 - 周小猪">
     <meta property="og:type" content="article">
         
     <meta property="article:published_time" content='2021-01-13T15:33:14&#43;08:00'>
@@ -17,10 +17,10 @@
     <meta property="article:modified_time" content='2021-01-13T15:33:14&#43;08:00'>
         
     <meta name="Keywords" content="elastic search">
-    <meta name="description" content="掌握核心技术之算法">
+    <meta name="description" content="掌握核心技术之网络">
         
     <meta name="author" content="周小猪">
-    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/">
+    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%BD%91%E7%BB%9C/">
     <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
 
     <link rel="stylesheet" href='/css/normalize.css'>
@@ -68,7 +68,7 @@
     
     <article class="post">
         <header>
-            <h1 class="post-title">掌握核心技术之算法</h1>
+            <h1 class="post-title">掌握核心技术之网络</h1>
         </header>
         <date class="post-meta meta-date">
             2021年1月13日
@@ -77,193 +77,157 @@
         <div class="post-meta">
             <span>|</span>
             
-            <span class="meta-category"><a href='/categories/%E7%AE%97%E6%B3%95'>算法</a></span>
+            <span class="meta-category"><a href='/categories/%E7%BD%91%E7%BB%9C'>网络</a></span>
             
         </div>
         
         
         
         <div class="post-content">
-            <p>算法（Algorithm）是指解题方案的准确而完整的描述，是一系列解决问题的清晰指令，算法代表着用系统的方法描述解决问题的策略机制。</p>
+            <h1 id="计算机网络">计算机网络</h1>
+<!-- raw HTML omitted -->
 <ul>
-<li>冒泡算法</li>
-<li>漏桶算法</li>
-<li>令牌桶算法</li>
-<li>一致哈希算法</li>
+<li>传输层：TCP和UDP
+<ul>
+<li><a href="#TCP/UDP%E5%8C%BA%E5%88%AB%EF%BC%9F">TCP/UDP区别？</a></li>
+<li><a href="#%E4%B8%A4%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%8F%AF%E4%BB%A5%EF%BC%9F">两次握手为什么不可以？</a></li>
+<li><a href="#%E6%8F%8F%E8%BF%B0%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E8%BF%87%E7%A8%8B%EF%BC%9F">描述三次握手过程？</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B%EF%BC%9F">为什么要四次挥手？</a></li>
 </ul>
-<h2 id="冒泡算法">冒泡算法</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func sort(s []int) []int {
-	for i := 0; i &lt; len(s); i++ {
-		for j := 0; j &lt; len(s)-i-1; j++ {
-			if s[j] &gt; s[j+1] {
-				s[j], s[j+1] = s[j+1], s[j]
-			}
-		}
-	}
-	return s
-}
-</code></pre></div><h2 id="漏桶算法">漏桶算法</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">type rateLimiter struct {
-	lock     *sync.Mutex
-	rate     float64   // 最大速率限制
-	balance  float64   // 漏桶的余量
-	limit    float64   // 漏桶的最大容量限制
-	lastTime time.Time // 上次检查的时间
-}
-
-func NewRateLimiter(rate, balance int) *rateLimiter {
-	return &amp;rateLimiter{
-		lock:     new(sync.Mutex),
-		rate:     float64(rate),
-		balance:  float64(balance),
-		limit:    float64(balance),
-		lastTime: time.Now(),
-	}
-}
-
-func (r *rateLimiter) Check() bool {
-	ok := false
-	r.lock.Lock()
-
-	now := time.Now()
-	dur := now.Sub(r.lastTime).Seconds()
-
-	r.lastTime = now
-	r.balance += dur * r.rate    // 漏桶流出water容量的水，自然漏桶的余量多出water
-
-	if r.balance &gt; r.limit {
-		r.balance = r.limit
-	}
-
-	if r.balance &gt;= 1 { // 漏桶余量足够容下当前的请求
-		r.balance -= 1
-		ok = true
-	}
-
-	r.lock.Unlock()
-	return ok
-}
-
-func main()  {
-	rateLimiter := NewRateLimiter(5, 1)
-
-	count := 0
-	for i := 0; i &lt; 1000; i++ {
-		if rateLimiter.Check() {
-			fmt.Println(i)
-			count++
-		}
-		time.Sleep(time.Millisecond)
-	}
-}
-</code></pre></div><h2 id="令牌桶算法">令牌桶算法</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func pushToken(rate, limit int) chan struct{} {
-	ch := make(chan struct{}, limit)
-	ticker := time.NewTicker(time.Duration(1) * time.Second)
-	for i := 0; i &lt; limit; i++ {
-		ch &lt;- struct{}{}
-	}
-
-	go func() {
-		for {
-			for i := 0; i &lt; rate; i++ {
-				ch &lt;- struct{}{}
-			}
-			&lt;-ticker.C
-		}
-	}()
-	return ch
-}
-
-func popToken(bucket chan struct{}, n int) {
-	for i := 0; i &lt; n; i++ {
-		&lt;-bucket
-	}
-}
-
-func main() {
-	rate := 10
-	ch := pushToken(rate, 20)
-
-	for i := 0; i &lt;= 1000; i += rate {
-		popToken(ch, rate)
-		fmt.Println(i)
-	}
-}
-</code></pre></div><blockquote>
-<p>如果要让自己的系统不被打垮，用令牌桶。如果保证别人的系统不被打垮，用漏桶算法。</p>
+</li>
+<li>应用层：HTTP和HTTPS
+<ul>
+<li><a href="#HTTP%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8UDP%E5%90%97%EF%BC%9F">HTTP可以使用UDP吗？</a></li>
+<li><a href="#%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E3%80%81%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E5%8C%BA%E5%88%AB%EF%BC%9F">对称加密、非对称加密区别？</a></li>
+<li><a href="#HTTP%E4%B8%8EHTTPS%E5%8C%BA%E5%88%AB%EF%BC%9F">HTTP与HTTPS区别？</a></li>
+<li><a href="#GET%E4%B8%8EPOST%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F">GET与POST的区别？</a></li>
+<li><a href="#Session%E4%B8%8ECookie%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F">Session与Cookie的区别？</a></li>
+<li><a href="#http%E8%AF%B7%E6%B1%82%E8%BF%87%E7%A8%8B%EF%BC%9F">http请求过程？</a></li>
+<li><a href="#HTTP%E5%B8%B8%E8%A7%81%E7%8A%B6%E6%80%81%E7%A0%81%EF%BC%9F">HTTP常见状态码？</a></li>
+</ul>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="传输层tcp和udp">传输层：TCP和UDP</h2>
+<h3 id="tcpudp区别">TCP/UDP区别</h3>
+<ul>
+<li>TCP是面向连接的，UDP是无连接的。</li>
+<li>TCP是可靠的，UDP不可靠。</li>
+<li>TCP只支持点对点通信，UDP支持一对一、一对多、多对一、多对多。</li>
+<li>TCP是面向字节流的，UDP是面向报文的。</li>
+<li>TCP有拥塞控制机制，UDP没有。</li>
+<li>TCP首部开销（20字节）比UDP首部开销（8字节）要大。</li>
+</ul>
+<blockquote>
+<p>ACK、SYN和FIN这些大写的单词表示标志位，其值要么是1，要么是0；ack、seq小写的单词表示序号。</p>
 </blockquote>
-<h2 id="一致哈希算法">一致哈希算法</h2>
-<p>服务器节点计算Hash值，映射到环上。存储key计算Hash值，映射到环上，数据存储的位置是沿顺时针的方向找到的环上的第一个节点。就是普通取模哈希算法的改良版，哈希函数计算方法不变，只不过是通过构建环状的Hash空间代替普通的线性Hash空间。一致性哈希能把节点宕机造成的影响控制在顺时针相邻节点之间，避免对整个集群造成影响。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">const DefaultReplicas = 100
-
-type SortKeys []uint32
-
-func (sk SortKeys) Len() int {
-	return len(sk)
-}
-
-func (sk SortKeys) Less(i, j int) bool {
-	return sk[i] &lt; sk[j]
-}
-
-func (sk SortKeys) Swap(i, j int) {
-	sk[i], sk[j] = sk[j], sk[i]
-}
-
-type HashRing struct {
-	Nodes map[uint32]string
-	Keys  SortKeys
-	sync.RWMutex
-}
-
-func (hr *HashRing) New(nodes []string) {
-	if nodes == nil {
-		return
-	}
-
-	hr.Nodes = make(map[uint32]string)
-	hr.Keys = SortKeys{}
-	for _, node := range nodes {
-		for i := 0; i &lt; DefaultReplicas; i++ {
-			str := node + strconv.Itoa(i)
-			hr.Nodes[hr.hashStr(str)] = node
-			hr.Keys = append(hr.Keys, hr.hashStr(str))
-		}
-	}
-	sort.Sort(hr.Keys)
-}
-
-func (hr *HashRing) GetNode(key string) string {
-	hr.RLock()
-	defer hr.RUnlock()
-	hash := hr.hashStr(key)
-	i := hr.getPosition(hash)
-	return hr.Nodes[hr.Keys[i]]
-}
-
-func (hr *HashRing) hashStr(key string) uint32 {
-	return crc32.ChecksumIEEE([]byte(key))
-}
-
-func (hr *HashRing) getPosition(hash uint32) int {
-	i := sort.Search(len(hr.Keys), func(i int) bool {
-		return hr.Keys[i] &gt;= hash
-	})
-
-	if i &lt; len(hr.Keys) {
-		if i == len(hr.Keys) - 1 {
-			return 0
-		} else {
-			return i
-		}
-	} else {
-		return len(hr.Keys) - 1
-	}
-}
-</code></pre></div><blockquote>
-<p>普通哈希算法实现的缓存负载均衡存在扩展能力和容错能力差问题和一致性哈希算法也存在数据倾斜和节点雪崩。</p>
+<ul>
+<li>序号（sequence number）：Seq序号，占32位，用来标识从TCP源端向目的端发送的字节流，发起方发送数据时对此进行标记。</li>
+<li>确认号（acknowledgement number）：Ack序号，占32位，只有ACK标志位为1时，确认序号字段才有效，Ack=Seq+1。</li>
+<li>标志位（Flags）：共6个，即URG、ACK、PSH、RST、SYN、FIN等。</li>
+<li>ACK：确认序号有效。</li>
+<li>SYN：发起一个新连接。</li>
+<li>FIN：释放一个连接。</li>
+</ul>
+<h4 id="为什么连接的时候是三次握手关闭的时候却是四次握手">为什么连接的时候是三次握手，关闭的时候却是四次握手？</h4>
+<p>三次握手，收到Client端的SYN连接请求报文后，可以直接发送SYN+ACK报文；而四次握手，只有等到Server端所有的报文都发送完，才能发送FIN报文，因此不能一起发送，故需要四步握手。</p>
+<h4 id="为什么time_wait状态需要经过2msl才能返回到close状态">为什么TIME_WAIT状态需要经过2MSL才能返回到CLOSE状态？</h4>
+<p>网络是不可靠的，有可以最后一个ACK丢失，所以TIME_WAIT状态就是用来重发可能丢失的ACK报文。</p>
+<h3 id="两次握手为什么不可以">两次握手为什么不可以</h3>
+<p>采用三次握手是为了防止失效的连接请求报文段突然又传送到主机B，因而产生错误。</p>
+<h3 id="描述三次握手过程">描述三次握手过程</h3>
+<ul>
+<li>你招手</li>
+<li>妹子点头微笑</li>
+<li>妹子招手</li>
+<li>你点头微笑
+妹子先是点头微笑(回复对方)，然后再次招手(寻求确认)，将其合成一个动作，招手的同时点头微笑(syn + ack)。于是这四个动作就简化成了三个动作。</li>
+</ul>
+<blockquote>
+<p>我要和你建立链接，你真的要和我建立链接么，我真的要和你建立链接，成功</p>
 </blockquote>
+<h3 id="为什么要四次挥手">为什么要四次挥手</h3>
+<p>TCP关闭链接四次握手原因在于tpc链接是全双工通道，需要双向关闭。client向server发送关闭请求，表示client不再发送数据，server响应。此时server端仍然可以向client发送数据，待server端发送数据结束后，就向client发送关闭请求，然后client确认。</p>
+<blockquote>
+<p>我要和你断开链接；好的，断吧。我也要和你断开链接；好的，断吧</p>
+</blockquote>
+<h2 id="应用层http和https">应用层：HTTP和HTTPS</h2>
+<h3 id="http可以使用udp吗">HTTP可以使用UDP吗</h3>
+<p>HTTP不可以使用UDP，HTTP需要基于可靠的传输协议，而UDP不可靠</p>
+<h3 id="对称加密非对称加密区别">对称加密、非对称加密区别</h3>
+<ul>
+<li>对称加密：加密和解密采用相同的密钥。如：DES、RC2、RC4。</li>
+<li>非对称加密：需要两个密钥：公钥和私钥。如果用公钥加密，需要用私钥才能解密。如：RSA。</li>
+</ul>
+<blockquote>
+<p>区别：对称加密速度更快，通常用于大量数据的加密；非对称加密安全性更高。</p>
+</blockquote>
+<p>https认证流程：</p>
+<ul>
+<li>认证服务器。浏览器内置一个受信任的CA机构列表，并保存了这些CA机构的证书。</li>
+<li>协商会话密钥。客户端在认证完服务器，获得服务器的公钥之后，利用该公钥与服务器进行加密通信，协商出两个会话密钥，分别是用于加密客户端往服务端发送数据的客户端会话密钥，用于加密服务端往客户端发送数据的服务端会话密钥。</li>
+<li>加密通讯。之后传输的所有Http数据，都通过会话密钥加密。
+
+        <img class="mx-auto" alt="" src="/images/https%e8%ae%a4%e8%af%81%e6%b5%81%e7%a8%8b.png" />   
+    </li>
+</ul>
+<h3 id="http与https区别">HTTP与HTTPS区别</h3>
+<ul>
+<li>https协议需要到ca申请证书，一般免费证书较少，因而需要一定费用。</li>
+<li>http是超文本传输协议，信息是明文传输，https则是具有安全性的ssl加密传输协议。</li>
+<li>http和https使用的是完全不同的连接方式，用的端口也不一样，前者是80，后者是443。</li>
+<li>http的连接很简单，是无状态的；https协议是由ssl+http协议构建的可进行加密传输、身份认证的网络协议，比http协议安全。</li>
+</ul>
+<h3 id="get与post的区别">GET与POST的区别</h3>
+<ul>
+<li>GET是幂等的，即读取同一个资源，总是得到相同的数据，POST不是幂等的；</li>
+<li>GET一般用于从服务器获取资源，而POST有可能改变服务器上的资源；</li>
+<li>安全性：GET请求可被缓存、收藏、保留到历史记录，且其请求数据明文出现在URL中。POST的参数不会被保存，安全性相对较高；</li>
+<li>GET只允许ASCII字符，POST对数据类型没有要求，也允许二进制数据；</li>
+<li>GET的长度有限制（操作系统或者浏览器），而POST数据大小无限制；</li>
+</ul>
+<h3 id="session与cookie的区别">Session与Cookie的区别</h3>
+<ul>
+<li>Session是服务器端保持状态的方案，Cookie是客户端保持状态的方案；</li>
+</ul>
+<blockquote>
+<p>cookie禁用，可通过URL重写、表单隐藏字段传递session id给服务器。</p>
+</blockquote>
+<h3 id="http请求过程">http请求过程</h3>
+<ul>
+<li>DNS解析</li>
+<li>TCP通过三次握手建立链接</li>
+<li>发送HTTP请求</li>
+<li>结果返回给浏览器</li>
+<li>解析并渲染视图</li>
+</ul>
+<h3 id="http常见状态码">HTTP常见状态码</h3>
+<ul>
+<li>
+<p>2xx状态码：操作成功</p>
+</li>
+<li>
+<p>3xx状态码：重定向</p>
+</li>
+<li>
+<p>4xx状态码：客户端错误</p>
+</li>
+<li>
+<p>5xx状态码：服务端错误</p>
+</li>
+<li>
+<p>499状态码：client has closed connection，客户端关闭了连接。</p>
+</li>
+<li>
+<p>502状态码：已经与后端建立了连接，但超时。</p>
+</li>
+<li>
+<p>503状态码：Service Unavailable，服务不可用。</p>
+</li>
+<li>
+<p>504状态码：与后端连接未建立。</p>
+</li>
+</ul>
 
         </div>
 
@@ -278,7 +242,7 @@ func (hr *HashRing) getPosition(hash uint32) int {
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1/">掌握核心技术之微服务</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%BD%91%E7%BB%9C/">掌握核心技术之网络</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/">掌握核心技术之算法</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/">掌握核心技术之ElasticSearch</a></li>
         

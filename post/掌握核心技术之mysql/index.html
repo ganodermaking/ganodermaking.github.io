@@ -85,26 +85,18 @@
         
         <div class="post-content">
             <p>MySQL 是最流行的关系型数据库管理系统，在 WEB 应用方面 MySQL 是最好的 RDBMS(Relational Database Management System：关系数据库管理系统)应用软件之一。</p>
-<p>SQL语言通常按照功能划分成以下的 4 个部分：</p>
-<ul>
-<li>DDL (Data Definition Language)：数据定义语言，用来定义数据库对象，包括库、表、视图和索引等。</li>
-<li>DML (Data Manipulation Language)：数据操作语言，用来操作和业务相关的记录。</li>
-<li>DQL (Data Query Language)：数据查询语言，用来查询经过条件筛选的记录。</li>
-<li>DCL (Data Control Language)：数据控制语言，用来定义访问权限和安全级别。</li>
-</ul>
-<blockquote>
-<p>常用的 DDL 功能是对象（如表、索引等）的创建、属性修改和删除，对应的命令分别是 CREATE、ALTER 和 DROP。</p>
-</blockquote>
 <p>主要集中在如下核心技术：</p>
 <ul>
-<li>连接池</li>
-<li>锁</li>
-<li>事务</li>
+<li>MySQL架构</li>
+<li>MySQL连接池</li>
+<li>MySQL悲观锁/乐观锁</li>
+<li>MySQL事务</li>
+<li>MySQL索引</li>
 <li>Online DDL</li>
 </ul>
-<h2 id="架构图">架构图</h2>
+<h2 id="mysql架构">MySQL架构</h2>
 <p>
-        <img class="mx-auto" alt="" src="/images/mysql%e6%9e%b6%e6%9e%84%e5%9b%be.png" />   
+        <img class="mx-auto" alt="" src="/images/MySQL%e6%9e%b6%e6%9e%84%e5%9b%be.png" />   
     </p>
 <p>Server层：</p>
 <ul>
@@ -114,14 +106,14 @@
 <li>优化器： 执行计划生成，索引选择</li>
 <li>执行器： 操作引擎，返回结果</li>
 </ul>
-<h2 id="连接池">连接池</h2>
+<h2 id="mysql连接池">MySQL连接池</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">db.SetMaxIdleConns<span style="color:#f92672">(</span>10<span style="color:#f92672">)</span>                   // 最大空闲连接数
 db.SetMaxOpenConns<span style="color:#f92672">(</span>30<span style="color:#f92672">)</span>                   // 最大连接数
 db.SetConnMaxLifetime<span style="color:#f92672">(</span>time.Second * 300<span style="color:#f92672">)</span> // 设置连接最大空闲超时
 </code></pre></div><blockquote>
 <p>长链接的缺点：容易占用内存，因为MySQL在执行过程中临时使用的内存是管理在连接对象里面的，这些资源会在连接断开的时候才释放。所以如果长连接累积下来，可能导致内存占用太大，被系统强行杀掉（OOM）。</p>
 </blockquote>
-<h2 id="锁">锁</h2>
+<h2 id="mysql悲观锁乐观锁">MySQL悲观锁/乐观锁</h2>
 <h3 id="悲观锁">悲观锁</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查出商品状态
 select quantity from items where id = 100 for update;
@@ -142,31 +134,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </code></pre></div><blockquote>
 <p>如果每次访问冲突概率小于20%，推荐使用乐观锁，否则使用悲观锁。乐观锁的重试次数不得小于3次。</p>
 </blockquote>
-<h3 id="表锁">表锁</h3>
-<p>一种是lock table的表锁，一种是元数据锁 metadata Lock。</p>
-<h3 id="在线ddl方案">在线DDL方案</h3>
-<p>SQL语言一共分为4大类：数据定义语言DDL，数据操纵语言DML，数据查询语言DQL，数据控制语言DCL。</p>
-<p>Mysql在5.6版本之前</p>
-<pre><code>创建临时表-》修改修改结构-》记录数据-》删掉原表-》重命名临时表
-</code></pre><ul>
-<li>创建_new后缀临时表</li>
-<li>临时表执行更改字段操作</li>
-<li>添加触发触发器，用于copy数据的过程中，在原表的更新操作更新到临时表</li>
-<li>将原表数据拷贝临时表，然后替换掉原表</li>
-</ul>
-<p>Mysql在5.6版本以后</p>
-<blockquote>
-<p>自5.6以后，单纯增加字段是不会导致锁表的，更改列数据类型、添加FULLTEXT索引会导致锁表的。
-自5.6以后，单纯增加字段是不会导致锁表的，增加/删除列，增加/删除主键，改变数据类型会导致重建表。</p>
-</blockquote>
-<p>元数据锁的原理
-当做DML操作时，会申请一个MDL读锁 当做DDL操作时，会申请一个MDL写锁 读锁之间不互斥，读写和写写之间都互斥。</p>
-<p>注意事项：</p>
-<ul>
-<li>尽量选择访问量小的时段进行数据库操作，避开高峰时段</li>
-<li>操作数据库之前，查看是否还有未提交的事务</li>
-</ul>
-<h2 id="事务">事务</h2>
+<h2 id="mysql事务">MySQL事务</h2>
 <h3 id="事务的基本要素acid">事务的基本要素（ACID）</h3>
 <ul>
 <li>原子性（Atomicity）：事务开始后所有操作，要么全部做完，要么全部不做，不可能停滞在中间环节。事务执行过程中出错，会回滚到事务开始前的状态，所有的操作就像没有发生一样。也就是说事务是一个不可分割的整体，就像化学中学过的原子，是物质构成的基本单位。</li>
@@ -220,51 +188,67 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </tr>
 </tbody>
 </table>
-<h2 id="myisam与innodb存储文件的区别">MyISAM与InnoDB存储文件的区别？</h2>
+<h2 id="mysql索引">MySQL索引</h2>
+<h4 id="myisam主键索引">MyISAM主键索引</h4>
+<p>
+        <img class="mx-auto" alt="" src="/images/MyISAM%e4%b8%bb%e9%94%ae%e7%b4%a2%e5%bc%95.png" />   
+    </p>
+<h4 id="myisam辅助索引">MyISAM辅助索引</h4>
+<p>
+        <img class="mx-auto" alt="" src="/images/MyISAM%e8%be%85%e5%8a%a9%e7%b4%a2%e5%bc%95.png" />   
+    </p>
+<h4 id="innodb主键索引">InnoDB主键索引</h4>
+<p>
+        <img class="mx-auto" alt="" src="/images//InnoDB%e4%b8%bb%e9%94%ae%e7%b4%a2%e5%bc%95.png" />   
+    </p>
+<h4 id="innodb辅助索引">InnoDB辅助索引</h4>
+<p>
+        <img class="mx-auto" alt="" src="/images/InnoDB%e8%be%85%e5%8a%a9%e7%b4%a2%e5%bc%95.png" />   
+    </p>
+<h4 id="myisam与innodb存储文件的区别">MyISAM与InnoDB存储文件的区别</h4>
 <ul>
 <li>每张MyISAM表被存放在三个文件，.frm表示定义文件，.myd表示数据文件，.myi表示索引文件。</li>
 <li>每张InnoDB表被存放在两个文件，.frm表示定义文件，.idb表示数据和索引文件。</li>
 </ul>
-<h2 id="myisam与innodb索引本质区别">MyISAM与InnoDB索引本质区别？</h2>
+<h4 id="myisam与innodb索引区别">MyISAM与InnoDB索引区别</h4>
 <ul>
 <li>MyISAM的主键和普通索引的data域都储存的是数据的地址。</li>
 <li>InnoDB的主键的data域储存数据，普通索引data域储存主键ID。</li>
 </ul>
-<h2 id="为什么建议mysql列属性尽量用not-null">为什么建议MySQL列属性尽量用NOT NULL？</h2>
+<h4 id="为什么建议mysql列属性尽量用not-null">为什么建议MySQL列属性尽量用NOT NULL？</h4>
 <ul>
-<li>NOT IN、!= 等负向条件查询时，不会返回有 NULL 值的列</li>
-<li>使用 concat 函数拼接时，首先要对各个字段进行非 NULL 判断，否则只要任何一个字段为空都会造成拼接的结果为 NULL</li>
-<li>当用count函数进行统计时，NULL 列不会计入统计</li>
-<li>NULL 列需要更多的存储空间，一般需要一个额外的字节作为判断是否为 NULL 的标志位</li>
+<li>NOT IN、!= 等负向条件查询时，不会返回有 NULL 值的列；</li>
+<li>使用 concat 函数拼接时，首先要对各个字段进行非 NULL 判断，否则只要任何一个字段为空都会造成拼接的结果为 NULL；</li>
+<li>当用count函数进行统计时，NULL 列不会计入统计；</li>
+<li>NULL 列需要更多的存储空间，一般需要一个额外的字节作为判断是否为 NULL 的标志位。</li>
 </ul>
 <p>注意事项：</p>
 <ul>
-<li>通常情况下最好指定列为NOT NULL，除非真的需要存储NULL值</li>
-<li>字段尽可能用NOT NULL，而不是NULL，除非特殊情况</li>
-<li>通常把可为NULL的列改为NOT NULL带来的性能提升比较小</li>
+<li>通常情况下最好指定列为NOT NULL，除非真的需要存储NULL值；</li>
+<li>字段尽可能用NOT NULL，而不是NULL，除非特殊情况；</li>
+<li>通常把可为NULL的列改为NOT NULL带来的性能提升比较小；</li>
 </ul>
 <h2 id="online-ddl">Online DDL</h2>
+<p>SQL语言通常按照功能划分成以下的 4 个部分：</p>
+<ul>
+<li>DDL (Data Definition Language)：数据定义语言，用来定义数据库对象，包括库、表、视图和索引等。</li>
+<li>DML (Data Manipulation Language)：数据操作语言，用来操作和业务相关的记录。</li>
+<li>DQL (Data Query Language)：数据查询语言，用来查询经过条件筛选的记录。</li>
+<li>DCL (Data Control Language)：数据控制语言，用来定义访问权限和安全级别。</li>
+</ul>
+<p>常用的DDL功能：</p>
 <ul>
 <li>增加新列（ADD COLUMN）</li>
 <li>修改列定义（MODIFY COLUMN）</li>
 <li>增加/删除索引（ADD/DROP INDEX）</li>
 </ul>
-<p>MySQL 5.5之前添加索引流程：</p>
-<ol>
-<li>按照原始表的定义，重新定义一个空的临时表。</li>
-<li>对临时表进行添加索引。</li>
-<li>再将原始表中的数据逐条Copy到临时表中。</li>
-<li>当原始表中的所有记录都被Copy临时表后，将原始表进行删除。</li>
-<li>再将临时表命名为原始表表名。</li>
-</ol>
-<h3 id="pt-online-schema-change工作原理">pt-online-schema-change工作原理</h3>
+<h3 id="pt-osc工作原理">pt-osc工作原理</h3>
+<p>pt-online-schema-change 的简称</p>
+<pre><code>创建临时表-》修改修改结构-》添加触发器并同步数据-》删掉原表-》重命名临时表
+</code></pre><p>注意事项：</p>
 <ul>
-<li>先创建一个空的临时表;</li>
-<li>按照原始表alter table后的结构进行定义;</li>
-<li>在原始表上加入触发器，将原始表在随后的数据拷贝过程中产生的数据更改（insert、update和delete）同步到临时表中;</li>
-<li>将原始表的数据拷贝到临时表中，在拷贝过程中的数据修改将被触发器同步到临时表中，这样保证原始表在进行alter table操作时不被锁表;</li>
-<li>同步数据结束后，进行改名操作，将临时表名称改为原始表名并删除掉原始表;</li>
-<li>删除掉触发器。</li>
+<li>尽量选择访问量小的时段进行数据库操作，避开高峰时段</li>
+<li>操作数据库之前，查看是否还有未提交的事务</li>
 </ul>
 
         </div>

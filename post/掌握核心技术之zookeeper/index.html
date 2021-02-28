@@ -84,7 +84,7 @@
         
         
         <div class="post-content">
-            <p>ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。</p>
+            <p>ZooKeeper是一个针对大型分布式系统的可靠协调系统，提供的功能包括：配置维护、名字服务、分布式同步、组服务等。</p>
 <h2 id="节点类型">节点类型</h2>
 <ul>
 <li>持久化节点：节点创建后，会一直存在，不会因客户端会话失效而删除</li>
@@ -96,32 +96,32 @@
 <p>支持CP，zookeeper在选举leader时，会停止服务，直到选举成功之后才会再次对外提供服务。</p>
 </blockquote>
 <h2 id="分布式锁">分布式锁</h2>
-<p>使用<code>临时顺序节点</code>实现分布式锁</p>
-<ul>
-<li>在锁节点下创建新的临时顺序节点。</li>
-<li>如果自己是第一个节点，加锁成功；如果不是，就对自己上一个节点加监听器。</li>
-<li>只要上一个节点释放锁，自己就排到前面去了，相当于是一个排队机制。</li>
-<li>获取锁的客户端奔溃与服务端断开，根据临时节点的特性，会释放锁。</li>
-</ul>
+<p>创建<code>临时顺序节点</code>实现分布式锁
+
+        <img class="mx-auto" alt="" src="/images//ZooKeeper%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81%e5%8e%9f%e7%90%86.png" />   
+    </p>
 <h2 id="选举原理">选举原理</h2>
-<p>当集群中 leader 服务器出现宕机或者不可用情况时，整个集群无法对外提供服务，进入新一轮的 leader 选举。</p>
+<p>当集群中leader服务器出现宕机或者不可用情况时，整个集群无法对外提供服务，进入新一轮的leader选举。</p>
 <ul>
 <li>领导者（Leader）：负责投票的发起和决议，更新服务状态。</li>
 <li>跟随者（Follower）：Follower用于接受客户端请求并向客户端返回结果，在选举过程中参与投票。</li>
-<li>观察者（ObServer）：ObServer可接收客户端连接，将写请求发送给Leader节点。但ObServer不参与投票过程，只同步Leader的状态。ObServer目的是为了扩展系统，提高读取效率。</li>
+<li>观察者（ObServer）：ObServer可接收客户端连接，将写请求发送给Leader节点。</li>
 </ul>
+<blockquote>
+<p>ObServer不参与投票过程，只同步Leader的状态。ObServer目的是为了扩展系统，提高读取效率。</p>
+</blockquote>
 <p>使用（myid，zxid）进行投票，优先级规则如下：</p>
 <ul>
 <li>zxid 比较大的服务器作为 leader 服务器</li>
 <li>如果 zxid 相同，myid 比较大的服务器作为 leader 服务器</li>
 </ul>
 <blockquote>
-<p>服务器 ID(myid)：编号越大在选举算法中权重越大；事务 ID(zxid)：值越大说明数据越新，权重越大。</p>
+<p>服务器ID(myid)：编号越大在选举算法中权重越大；事务ID(zxid)：值越大说明数据越新，权重越大。</p>
 </blockquote>
 <h2 id="zookeeper和eureka区别">ZooKeeper和Eureka区别</h2>
 <p>zookeeper和eureka就是CAP定理中的实现，eureka(保证AP)，zookeeper(保证CP)。</p>
 <ul>
-<li>选举期间整个zooKeeper集群都是不可用的。</li>
+<li>选举期间整个zooKeeper集群都是不可用的；</li>
 <li>只要有一台Eureka还在，就能保证注册服务可用。</li>
 </ul>
 <blockquote>
@@ -129,8 +129,8 @@
 </blockquote>
 <p>eureka有一种自我保护机制，15分钟内超过85%的节点都没有正常的心跳，eureka认为客户端与注册中心出现网络故障。</p>
 <ul>
-<li>不再从注册列表中移除因为长时间没有收到心跳而应该过期的服务。</li>
-<li>Eureka仍然能够提供服务注册和查询请求。</li>
+<li>不再从注册列表中移除因为长时间没有收到心跳而应该过期的服务；</li>
+<li>Eureka仍然能够提供服务注册和查询请求；</li>
 <li>网络稳定时，当前实例新的注册信息才会被同步到其它节点上。</li>
 </ul>
 <blockquote>

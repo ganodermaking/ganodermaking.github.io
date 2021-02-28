@@ -145,7 +145,7 @@
 <li>协商会话密钥。客户端在认证完服务器，获得服务器的公钥之后，利用该公钥与服务器进行加密通信，协商出两个会话密钥，分别是用于加密客户端往服务端发送数据的客户端会话密钥，用于加密服务端往客户端发送数据的服务端会话密钥。</li>
 <li>加密通讯。之后传输的所有Http数据，都通过会话密钥加密。
 
-        <img class="mx-auto" alt="" src="/images/https%e8%ae%a4%e8%af%81%e6%b5%81%e7%a8%8b.png" />   
+        <img class="mx-auto" alt="" src="/images/HTTPS%e8%ae%a4%e8%af%81%e6%b5%81%e7%a8%8b.png" />   
     </li>
 </ul>
 <h3 id="http与https区别">HTTP与HTTPS区别</h3>
@@ -205,6 +205,14 @@
 <p>504状态码：与后端连接未建立。</p>
 </li>
 </ul>
+<h2 id="非阻塞io多路复用">非阻塞IO多路复用</h2>
+<p>多路指的是多个Socket连接，复用指的是复用一个线程。多路复用主要有三种技术：select，poll，epoll，epoll是最新的也是目前最好的多路复用技术。</p>
+<h4 id="redis高性能原理">redis高性能原理</h4>
+<p>采用内存操作 + 单线程 + 非阻塞IO多路复用</p>
+<h4 id="nginx高并发原理">nginx高并发原理</h4>
+<p>采用多进程（单线程） + 非阻塞IO多路复用</p>
+<h3 id="apache与nginx区别">Apache与Nginx区别</h3>
+<p>Apache是同步多进程模型，一个连接对应一个进程；nginx是异步多进程模型，多个连接（万级别）可以对应一个进程。</p>
 
         </div>
 

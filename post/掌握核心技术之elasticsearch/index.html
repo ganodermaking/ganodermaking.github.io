@@ -85,19 +85,24 @@
         
         <div class="post-content">
             <p>Elasticsearch 是一个分布式可扩展的实时搜索和分析引擎，一个建立在全文搜索引擎 Apache Lucene(TM) 基础上的搜索引擎。使用一种称为 <code>倒排索引</code> 的结构，它适用于快速的全文搜索。</p>
-<h2 id="倒排索引">倒排索引</h2>
-<p>类比现代汉语词典的话，Term Index相当于词典的目录索引，Term Dictionary相当于汉语词典本身，Term相当于词语。</p>
-<h3 id="term单词">Term（单词）</h3>
+<ul>
+<li>Elasticsearch索引</li>
+<li>Elasticsearch分词器</li>
+<li>为什么Elasticsearch/Lucene检索可以比MySQL快</li>
+</ul>
+<h2 id="elasticsearch索引">Elasticsearch索引</h2>
+<p>Elasticsearch索引 使用的是一种名为倒排索引的数据结构，这一结构的设计可以允许十分快速地进行全文本搜索。类比现代汉语词典的话，Term Index相当于词典的目录索引，Term Dictionary相当于汉语词典本身，Term相当于词语。</p>
+<h4 id="term单词">Term（单词）</h4>
 <p>一段文本经过分析器分析以后就会输出一串单词，这一个一个的就叫做Term。</p>
-<h3 id="term-dictionary单词字典">Term Dictionary（单词字典）</h3>
+<h4 id="term-dictionary单词字典">Term Dictionary（单词字典）</h4>
 <p>为了能快速找到某个单词，将所有的单词排个序，这就是Term Dictionary。</p>
-<h3 id="term-index单词索引">Term Index（单词索引）</h3>
+<h4 id="term-index单词索引">Term Index（单词索引）</h4>
 <p>单词前缀与Term Dictionary的block之间的映射关系，这就是Term Index。再结合FST的压缩技术，可以使term index缓存到内存中。从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数。</p>
-<h3 id="posting-list倒排列表">Posting List（倒排列表）</h3>
+<h4 id="posting-list倒排列表">Posting List（倒排列表）</h4>
 <p>倒排列表记录了出现过某个单词的所有文档的文档列表及单词在该文档中出现的位置信息，每条记录称为一个倒排项。</p>
-<h3 id="fst压缩技术">FST压缩技术</h3>
+<h4 id="fst压缩技术">FST压缩技术</h4>
 <p>FST以字节的方式存储所有的term，这种压缩方式可以有效的缩减存储空间，使得term index足以放进内存，但这种方式也会导致查找时需要更多的CPU资源。</p>
-<h2 id="ik分词模式">ik分词模式</h2>
+<h2 id="elasticsearch分词器">Elasticsearch分词器</h2>
 <p>ik分词器有两种分词模式：ik_max_word和ik_smart模式。</p>
 <ul>
 <li>会将文本做最细粒度的拆分，比如会将“中华人民共和国人民大会堂”拆分为“中华人民共和国、中华人民、中华、华人、人民共和国、人民、共和国、大会堂、大会、会堂等词语。</li>

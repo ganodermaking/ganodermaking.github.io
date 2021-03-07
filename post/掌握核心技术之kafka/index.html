@@ -7,21 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
 
-    <title>Golang | 周小猪</title>
-    <meta property="og:title" content="Golang - 周小猪">
+    <title>掌握核心技术之微服务 | 周小猪</title>
+    <meta property="og:title" content="掌握核心技术之微服务 - 周小猪">
     <meta property="og:type" content="article">
         
+    <meta property="article:published_time" content='2021-01-13T15:33:14&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2021-01-13T15:33:14&#43;08:00'>
         
     <meta name="Keywords" content="elastic search">
-    <meta name="description" content="Golang">
+    <meta name="description" content="掌握核心技术之微服务">
         
     <meta name="author" content="周小猪">
-    <meta property="og:url" content="http://ganodermaking.github.io/categories/golang/">
+    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">
     <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
 
     <link rel="stylesheet" href='/css/normalize.css'>
     <link rel="stylesheet" href='/css/style.css'>
-    <link rel="alternate" type="application/rss+xml+xml" href="http://ganodermaking.github.io/categories/golang/index.xml" title="周小猪" />
     <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
@@ -47,7 +50,7 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="" href="http://ganodermaking.github.io/">首页</a>
+                    <a class="current" href="http://ganodermaking.github.io/">首页</a>
                     
                 </nav>
             </div>
@@ -63,44 +66,122 @@
                     
 <div class="res-cons">
     
-    <h3 class="archive-title">
-        分类
-        <span class="keyword">Golang</span>
-        中的文章
-    </h3>
-    
-
-    
     <article class="post">
         <header>
-            <h1 class="post-title">
-                <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/">掌握核心技术之Golang</a>
-            </h1>
+            <h1 class="post-title">掌握核心技术之微服务</h1>
         </header>
         <date class="post-meta meta-date">
             2021年1月13日
         </date>
         
-        <div class="post-meta meta-category">
-            |
+        <div class="post-meta">
+            <span>|</span>
             
-            <a href='/categories/golang'>Golang</a>
+            <span class="meta-category"><a href='/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6'>中间件</a></span>
             
         </div>
         
+        
+        
         <div class="post-content">
-            不要通过共享内存来通信，而应该通过通信来共享内存。……
-            <p class="readmore"><a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/">阅读全文</a></p>
+            <p>Kafka是高吞吐低延迟的高并发、高性能的消息中间件。</p>
+<ul>
+<li>磁盘顺序写</li>
+<li>消息批量压缩发送</li>
+<li>标准化二进制消息格式</li>
+<li>页缓存</li>
+<li>内存映射文件</li>
+<li>零拷贝技术</li>
+</ul>
+<h4 id="kafka磁盘顺序写">Kafka磁盘顺序写</h4>
+<ul>
+<li>磁盘顺序写速度超过内存随机读写</li>
+<li>JVM的GC效率低，内存占用大，使用磁盘可以避免这一问题</li>
+<li>系统冷启动后，磁盘上的缓存依然可用</li>
+</ul>
+<h3 id="如何保kafka证消息的有序性">如何保kafka证消息的有序性</h3>
+<ul>
+<li>一个 topic，一个 partition，一个 consumer；</li>
+<li>消息发送到指定partition分区。</li>
+</ul>
+<h3 id="kafka生产者分区策略">Kafka生产者分区策略</h3>
+<p>默认的分区策略：</p>
+<ul>
+<li>如果在发消息的时候指定了分区，则消息投递到指定的分区。</li>
+<li>如果没有指定分区，但是消息的key不为空，则基于key的哈希值来选择一个分区。</li>
+<li>如果既没有指定分区，且消息的key也是空，则用轮询或随机的方式选择一个分区。</li>
+</ul>
+<blockquote>
+<p>新版kafka默认为轮询策略</p>
+</blockquote>
+<h3 id="kafka消费者分区策略">Kafka消费者分区策略</h3>
+<ul>
+<li>同一时刻，一条消息只能被组中的一个消费者实例消费，不同组之间的消费不产生影响</li>
+<li>最理想的情况：一个消费者负责一个分区</li>
+<li>消费者数大于分区数：一个消费者最多消费一个分区</li>
+<li>消费者数小于等于分区数：一个消费者会负责多个分区</li>
+</ul>
+<p>消费者数小于等于分区数，消费者如何分配：</p>
+<ul>
+<li>
+<p>随机策略是基于每个主题的。假设有两个消费者C0和C1，两个主题t0和t1，每个主题有3个分区，分别是t0p0，t0p1，t0p2，t1p0，t1p1，t1p2，那么分配结果如下：
+C0: [t0p0, t0p1, t1p0, t1p1]
+C1: [t0p2, t1p2]</p>
+</li>
+<li>
+<p>轮询分配策略是基于所有可用的消费者和所有可用的分区的。假设有两个消费者C0和C1，两个主题t0和t1，每个主题有3个分区，分别是t0p0，t0p1，t0p2，t1p0，t1p1，t1p2，那么分配结果如下：
+C0: [t0p0, t0p2, t1p1]
+C1: [t0p1, t1p0, t1p2]</p>
+</li>
+</ul>
+<p>使用RoundRobin策略有两个前提条件必须满足：</p>
+<ul>
+<li>同一个Consumer Group里面的所有消费者的num.streams必须相等；</li>
+<li>每个消费者订阅的主题必须相同。</li>
+</ul>
+<h3 id="零拷贝技术">零拷贝技术</h3>
+<p>全程CPU拷贝，这也是零拷贝这一说法的来源。</p>
+
+        </div>
+
+        
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/">掌握核心技术之ElasticSearch</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/">掌握核心技术之Eureka</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/">掌握核心技术之Golang</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/kafka'>Kafka</a></li>
+                
+            </ul>
+            
         </div>
     </article>
     
-
     
 
-
-
-
-
+    
+    
 </div>
 
                     <footer id="footer">
@@ -123,6 +204,16 @@
 </footer>
 
 
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
 <a id="rocket" href="#top"></a>
 <script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>

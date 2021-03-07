@@ -44,6 +44,15 @@
     </item>
     
     <item>
+      <title>Kafka</title>
+      <link>http://ganodermaking.github.io/tags/kafka/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/tags/kafka/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>MongoDB</title>
       <link>http://ganodermaking.github.io/tags/mongodb/</link>
       <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
@@ -58,6 +67,15 @@
       <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
       
       <guid>http://ganodermaking.github.io/tags/mysql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>RabbitMQ</title>
+      <link>http://ganodermaking.github.io/tags/rabbitmq/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/tags/rabbitmq/</guid>
       <description></description>
     </item>
     

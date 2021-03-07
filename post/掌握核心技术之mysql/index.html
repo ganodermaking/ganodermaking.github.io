@@ -190,21 +190,31 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </table>
 <h2 id="mysql索引">MySQL索引</h2>
 <h4 id="myisam主键索引">MyISAM主键索引</h4>
-<p>
+<p>MyISAM引擎使用B+树作为索引结果，叶节点的data域存放的是数据记录的地址。
+
         <img class="mx-auto" alt="" src="/images/MyISAM%e4%b8%bb%e9%94%ae%e7%b4%a2%e5%bc%95.png" />   
     </p>
 <h4 id="myisam辅助索引">MyISAM辅助索引</h4>
-<p>
+<p>在MyISAM中，主索引和辅助索引在结构上没有任何区别，只是主索引要求key是唯一的，而辅助索引的key可以重复。
+
         <img class="mx-auto" alt="" src="/images/MyISAM%e8%be%85%e5%8a%a9%e7%b4%a2%e5%bc%95.png" />   
     </p>
+<blockquote>
+<p>MyISAM中索引检索的算法为首先按照B+Tree搜索算法搜索索引，如果指定的Key存在，则取出其data域的值，然后以data域的值为地址，读取相应数据记录。</p>
+</blockquote>
 <h4 id="innodb主键索引">InnoDB主键索引</h4>
-<p>
+<p>InnoDB表数据文件本身就是一个索引结构，树的叶节点data域保存了完整的数据记录，这种索引叫做聚集索引。
+
         <img class="mx-auto" alt="" src="/images//InnoDB%e4%b8%bb%e9%94%ae%e7%b4%a2%e5%bc%95.png" />   
     </p>
 <h4 id="innodb辅助索引">InnoDB辅助索引</h4>
-<p>
+<p>InnoDB的所有辅助索引都引用主键作为data域。
+
         <img class="mx-auto" alt="" src="/images/InnoDB%e8%be%85%e5%8a%a9%e7%b4%a2%e5%bc%95.png" />   
     </p>
+<blockquote>
+<p>聚集索引这种实现方式使得按主键的搜索十分高效，但是辅助索引搜索需要检索两遍索引：首先检索辅助索引获得主键，然后用主键到主索引中检索获得记录。</p>
+</blockquote>
 <h4 id="myisam与innodb存储文件的区别">MyISAM与InnoDB存储文件的区别</h4>
 <ul>
 <li>每张MyISAM表被存放在三个文件，.frm表示定义文件，.myd表示数据文件，.myi表示索引文件。</li>
@@ -212,9 +222,15 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </ul>
 <h4 id="myisam与innodb索引区别">MyISAM与InnoDB索引区别</h4>
 <ul>
-<li>MyISAM的主键和普通索引的data域都储存的是数据的地址。</li>
-<li>InnoDB的主键的data域储存数据，普通索引data域储存主键ID。</li>
+<li>锁：MyISAM使用的是表锁；InnoDB使用行锁。</li>
+<li>事务：MyISAM没有事务支持和MVCC；InnoDB支持事务和MVCC。</li>
+<li>外键：MyISAM不支持；InnoDB支持</li>
+<li>主键：MyISAM允许没有任何索引和主键的表存在，索引都是保存行的地址；InnoDB如果没有设定主键或非空唯一索引，就会自动生成一个6字节的主键，数据是主索引的一部分，附加索引保存的是主索引的值</li>
+<li>存储结构（主索引／辅助索引）：InnoDB的数据文件本身就是主键索引文件。而MyISAM的主索引和数据是分开的。InnoDB的辅助索引data域存储相应记录主键的值而不是地址。而MyISAM的辅助索引和主索引没有多大区别。innoDB是聚簇索引，数据挂在主键索引之下。</li>
 </ul>
+<blockquote>
+<p>Innodb支持事务和行级锁，是innodb的最大特色。</p>
+</blockquote>
 <h4 id="为什么建议mysql列属性尽量用not-null">为什么建议MySQL列属性尽量用NOT NULL？</h4>
 <ul>
 <li>NOT IN、!= 等负向条件查询时，不会返回有 NULL 值的列；</li>
@@ -373,6 +389,10 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Brabbitmq/" title="掌握核心技术之RabbitMQ">掌握核心技术之RabbitMQ</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
@@ -381,11 +401,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     </li>
     
     <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/" title="掌握核心技术之算法">掌握核心技术之算法</a>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
     </li>
     
 </ul>
@@ -401,7 +417,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (6)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -424,9 +440,13 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
+    <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     
     <a href="http://ganodermaking.github.io/tags/mysql/">MySQL</a>
+    
+    <a href="http://ganodermaking.github.io/tags/rabbitmq/">RabbitMQ</a>
     
     <a href="http://ganodermaking.github.io/tags/redis/">Redis</a>
     

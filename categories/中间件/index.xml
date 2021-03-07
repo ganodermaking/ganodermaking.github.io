@@ -44,6 +44,15 @@
     </item>
     
     <item>
+      <title>掌握核心技术之RabbitMQ</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Brabbitmq/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Brabbitmq/</guid>
+      <description>RabbitMQ是一个流行的开源消息队列系统，是AMQP（高级消息队列协议）标准的实现，由以高性能、健壮、可伸缩性出名的Erlang语言开发。 RabbitMQ是一个开源的消息代理和队列服务器，用来通过普通协议在完全不同的应用之间共享数据，RabbitMQ使用Erlang编写，并且基于AMQP协议。</description>
+    </item>
+    
+    <item>
       <title>掌握核心技术之Redis</title>
       <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/</link>
       <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
@@ -59,6 +68,15 @@
       
       <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/</guid>
       <description>ZooKeeper是一个针对大型分布式系统的可靠协调系统，提供的功能包括：配置维护、名字服务、分布式同步、组服务等。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之微服务</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/</guid>
+      <description>Kafka是高吞吐低延迟的高并发、高性能的消息中间件。</description>
     </item>
     
   </channel>

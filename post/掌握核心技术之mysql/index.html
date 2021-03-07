@@ -91,6 +91,7 @@
 <li>MySQL连接池</li>
 <li>MySQL悲观锁/乐观锁</li>
 <li>MySQL事务</li>
+<li>MySQL MVCC</li>
 <li>MySQL索引</li>
 <li>Online DDL</li>
 </ul>
@@ -145,8 +146,8 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <h3 id="事务的并发问题">事务的并发问题</h3>
 <ul>
 <li>脏读：事务A读取了事务B更新的数据，然后B回滚操作，那么A读取到的数据是脏数据</li>
-<li>不可重复读：事务 A 多次读取同一数据，事务 B 在事务A多次读取的过程中，对数据作了更新并提交，导致事务A多次读取同一数据时，结果 不一致。</li>
-<li>幻读：系统管理员A将数据库中所有学生的成绩从具体分数改为ABCDE等级，但是系统管理员B就在这个时候插入了一条具体分数的记录，当系统管理员A改结束后发现还有一条记录没有改过来，就好像发生了幻觉一样，这就叫幻读。</li>
+<li>不可重复读：事务 A 多次读取同一数据，事务 B 在事务A多次读取的过程中，对数据作了更新并提交，导致事务A多次读取同一数据时，结果不一致</li>
+<li>幻读：系统管理员A将数据库中所有学生的成绩从具体分数改为ABCDE等级，但是系统管理员B就在这个时候插入了一条具体分数的记录，当系统管理员A改结束后发现还有一条记录没有改过来，就好像发生了幻觉一样，这就叫幻读</li>
 </ul>
 <blockquote>
 <p>不可重复读的和幻读很容易混淆，不可重复读侧重于修改，幻读侧重于新增或删除。解决不可重复读的问题只需锁住满足条件的行，解决幻读需要锁表</p>
@@ -188,6 +189,15 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </tr>
 </tbody>
 </table>
+<h2 id="mysql-mvcc">MySQL MVCC</h2>
+<p>MVCC，Multi-Version Concurrency Control，多版本并发控制。MVCC 是一种并发控制的方法，一般在数据库管理系统中，实现对数据库的并发访问。</p>
+<p>MVCC的实现，通过保存数据在某个时间点的快照来实现的。这意味着一个事务无论运行多长时间，在同一个事务里能够看到数据一致的视图。根据事务开始的时间不同，同时也意味着在同一个时刻不同事务看到的相同表里的数据可能是不同的。MVCC手段只适用于Msyql隔离级别中的读已提交（Read committed）和可重复读（Repeatable Read）.</p>
+<p>基本特征如下：</p>
+<ul>
+<li>每行数据都存在一个版本，每次数据更新时都更新该版本</li>
+<li>修改时Copy出当前版本随意修改，各个事务之间无干扰</li>
+<li>保存时比较版本号，如果成功（commit），则覆盖原记录；失败则放弃copy（rollback）</li>
+</ul>
 <h2 id="mysql索引">MySQL索引</h2>
 <h4 id="myisam主键索引">MyISAM主键索引</h4>
 <p>MyISAM引擎使用B+树作为索引结果，叶节点的data域存放的是数据记录的地址。
@@ -244,6 +254,14 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>字段尽可能用NOT NULL，而不是NULL，除非特殊情况；</li>
 <li>通常把可为NULL的列改为NOT NULL带来的性能提升比较小；</li>
 </ul>
+<h4 id="mysql自增id达到上限的解决方法">MySQL自增ID达到上限的解决方法？</h4>
+<p>如果设置了主键，那么将会报错主键冲突。如果没有设置主键，数据库则会帮我们自动生成一个全局的row_id，新数据会覆盖老数据。</p>
+<h4 id="innodb引擎聚簇索引如何选择索引">InnoDB引擎聚簇索引如何选择索引？</h4>
+<ul>
+<li>如果定义了主键，那么InnoDB会使用主键作为聚簇索引</li>
+<li>如果没有定义主键，那么会使用第一非空的唯一索引作为聚簇索引</li>
+<li>如果既没有主键也找不到合适的非空索引，那么InnoDB会自动生成一个不可见的名为ROW_ID的列名为GEN_CLUST_INDEX的聚簇索引，该列是一个6字节的自增数值，随着插入而自增</li>
+</ul>
 <h2 id="online-ddl">Online DDL</h2>
 <p>SQL语言通常按照功能划分成以下的 4 个部分：</p>
 <ul>
@@ -266,16 +284,6 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>尽量选择访问量小的时段进行数据库操作，避开高峰时段</li>
 <li>操作数据库之前，查看是否还有未提交的事务</li>
 </ul>
-<h2 id="分布式锁">分布式锁</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查询出商品信息
-select (quantity,version) from items where id = 100;
-// step2: 根据商品信息生成订单
-insert into orders(id, item_id) values(null, 100);
-// step3: 修改商品的库存
-update items set quantity = quantity - 1, version = version + 1 where id = 100 and version = #{version};
-</code></pre></div><blockquote>
-<p>如果每次访问冲突概率小于20%，推荐使用乐观锁，否则使用悲观锁。乐观锁的重试次数不得小于3次。</p>
-</blockquote>
 
         </div>
 

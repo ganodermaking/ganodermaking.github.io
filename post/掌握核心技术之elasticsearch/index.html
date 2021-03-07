@@ -113,6 +113,18 @@
 <li>Mysql只有term dictionary这一层，是以树的方式存储在磁盘上的。</li>
 <li>Lucene在term dictionary的基础上添加了term index来加速检索，term index以树的形式缓存在内存中。从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘的random access次数。</li>
 </ul>
+<h4 id="b树">B+树</h4>
+<p>所有的非叶子都不存放数据，只是作为叶子节点的索引，数据全部都存放在叶子节点。这样所有叶子节点的数据都是有序存放的，便能很好的支持区间查询。只需要先通过查询到起始节点的位置，然后在叶子节点中依次往后遍历即可。</p>
+<h4 id="倒排索引">倒排索引</h4>
+<p>
+        <img class="mx-auto" alt="" src="/images/%e5%80%92%e6%8e%92%e7%b4%a2%e5%bc%95.jpg" />   
+    
+既然无法将整个 Term Dictionary 放入内存中，那我们可以为Term Dictionary 创建一个索引然后放入内存中。这样便可以高效的查询Term Dictionary，最后再通过Term Dictionary 查询到 Posting List。</p>
+<p>如果我们是以 j 开头的 Term 进行搜索，首先第一步就是通过在内存中的 Term Index 查询出以 j 打头的 Term 在 Term Dictionary 字典文件中的哪个位置（这个位置可以是一个文件指针，可能是一个区间范围）。紧接着在将这个位置区间中的所有 Term 取出，由于已经排好序，便可通过二分查找快速定位到具体位置；这样便可查询出 Posting List。最终通过 Posting List 中的位置信息便可在原始文件中将目标数据检索出来。</p>
+<h4 id="b树和倒排索引区别">B+树和倒排索引区别</h4>
+<p>
+        <img class="mx-auto" alt="" src="/images/ElasticSearch%e5%92%8cMySQ%e7%b4%a2%e5%bc%95%e5%8c%ba%e5%88%ab.png" />   
+    </p>
 
         </div>
 

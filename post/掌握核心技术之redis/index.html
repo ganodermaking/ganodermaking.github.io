@@ -98,6 +98,9 @@
 <li>集群方式</li>
 <li>常见问题</li>
 </ul>
+<blockquote>
+<p>采用内存操作 + 非阻塞I/O多路复用(epoll)模型 + 单线程 造就Redis具有很高的吞吐量。</p>
+</blockquote>
 <h2 id="scan命令">SCAN命令</h2>
 <p>用于迭代数据库中的数据库键，替换keys命令</p>
 <ul>
@@ -119,7 +122,11 @@
 <p>geodist 用于返回两个给定位置之间的距离。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">GEODIST key member1 member2 <span style="color:#f92672">[</span>m|km|ft|mi<span style="color:#f92672">]</span>
 </code></pre></div><h2 id="bitmaps">Bitmaps</h2>
-<p>Bitmaps并不是实际的数据类型，而是定义在String类型上的一个面向字节操作的集合。</p>
+<p>Bitmaps本身不是一种数据结构，实际上它就是字符串，但是它可以对字符串的位进行操作。</p>
+<p>Bitmaps单独提供了一套命令，所以在Redis中使用Bitmaps和使用字符串的方法不太相同。可以把Bitmaps想象成一个以位为单位的数组，数组的每个单元只能存储0和1，数组的下标在Bitmaps中叫做偏移量。</p>
+<p>
+        <img class="mx-auto" alt="" src="/images/%e5%ad%97%e7%ac%a6%e4%b8%b2%e7%94%a8%e4%ba%8c%e8%bf%9b%e5%88%b6%e8%a1%a8%e7%a4%ba.png" />   
+    </p>
 <p>应用场景：存储用户的签到情况、文章已读或未读情况、统计今日登录的用户数</p>
 <ul>
 <li>setbit 获取位图指定索引的值</li>
@@ -144,7 +151,7 @@ PFADD ip:20160928 <span style="color:#e6db74">&#34;1.1.1.1&#34;</span>  <span st
 PFCOUNT ip:20160929
 PFCOUNT ip:20160928 ip:20160929 <span style="color:#75715e"># 统计ip数量</span>
 </code></pre></div><blockquote>
-<p>它和bitmaps相比，属于两种特定统计情况，简单来说，HyperLogLog去重比bitmap方便很多。</p>
+<p>它和Bitmaps相比，属于两种特定统计情况，简单来说，HyperLogLog去重比Bitmaps方便很多。</p>
 </blockquote>
 <h2 id="布隆过滤器">布隆过滤器</h2>
 <p>布隆过滤器是一个神奇的数据结构，可以用来判断一个元素是否在一个集合中。
@@ -251,17 +258,6 @@ BF.EXISTS app:mobile <span style="color:#ae81ff">18200130002</span>
 }
 </code></pre></div><h2 id="分布式锁">分布式锁</h2>
 <p>分布式锁一般有三种实现方式：1. 数据库乐观锁；2. 基于Redis的分布式锁；3. 基于ZooKeeper的分布式锁。</p>
-<h3 id="数据库乐观锁">数据库乐观锁</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查询出商品信息
-select (quantity,version) from items where id = 100;
-// step2: 根据商品信息生成订单
-insert into orders(id, item_id) values(null, 100);
-// step3: 修改商品的库存
-update items set quantity = quantity - 1, version = version + 1 where id = 100 and version = #{version};
-</code></pre></div><blockquote>
-<p>如果每次访问冲突概率小于20%，推荐使用乐观锁，否则使用悲观锁。乐观锁的重试次数不得小于3次。</p>
-</blockquote>
-<h3 id="基于redis的分布式锁">基于Redis的分布式锁</h3>
 <ul>
 <li>加锁：判断 key 是否存在、保存 key-value、设置 key 的过期时间</li>
 <li>解锁：判断 key 是否存在、判断是否自己持有锁、删除 key-value</li>
@@ -272,6 +268,42 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>加锁的时候的 value 必须是一个全局唯一的字符串。</li>
 <li>防止删除重新加锁的 key</li>
 </ul>
+<p>版本一</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RedisTool</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String LOCK_SUCCESS <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;OK&#34;</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String SET_IF_NOT_EXIST <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;NX&#34;</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String SET_WITH_EXPIRE_TIME <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;PX&#34;</span><span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Long RELEASE_SUCCESS <span style="color:#f92672">=</span> 1L<span style="color:#f92672">;</span>
+    
+    <span style="color:#75715e">/**
+</span><span style="color:#75715e">     * 获取分布式锁
+</span><span style="color:#75715e">     * 保证SETNX命令 + 过期时间原子性
+</span><span style="color:#75715e">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">getLock</span><span style="color:#f92672">(</span>Jedis jedis<span style="color:#f92672">,</span> String lockKey<span style="color:#f92672">,</span> String value<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> expireTime<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String result <span style="color:#f92672">=</span> jedis<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>lockKey<span style="color:#f92672">,</span> value<span style="color:#f92672">,</span> SET_IF_NOT_EXIST<span style="color:#f92672">,</span> SET_WITH_EXPIRE_TIME<span style="color:#f92672">,</span> expireTime<span style="color:#f92672">);</span>
+
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>LOCK_SUCCESS<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>result<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#75715e">/**
+</span><span style="color:#75715e">     * 释放分布式锁
+</span><span style="color:#75715e">     * 首先获取锁对应的value值，检查是否与value相等，如果相等则删除锁，整个过程保证原子性
+</span><span style="color:#75715e">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">releaseLock</span><span style="color:#f92672">(</span>Jedis jedis<span style="color:#f92672">,</span> String lockKey<span style="color:#f92672">,</span> String value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String script <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;if redis.call(&#39;get&#39;, KEYS[1]) == ARGV[1] then return redis.call(&#39;del&#39;, KEYS[1]) else return 0 end&#34;</span><span style="color:#f92672">;</span>
+        Object result <span style="color:#f92672">=</span> jedis<span style="color:#f92672">.</span><span style="color:#a6e22e">eval</span><span style="color:#f92672">(</span>script<span style="color:#f92672">,</span> Collections<span style="color:#f92672">.</span><span style="color:#a6e22e">singletonList</span><span style="color:#f92672">(</span>lockKey<span style="color:#f92672">),</span> Collections<span style="color:#f92672">.</span><span style="color:#a6e22e">singletonList</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
+
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>RELEASE_SUCCESS<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>result<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>版本二</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Rds</span> <span style="color:#66d9ef">struct</span> {
 	<span style="color:#a6e22e">Client</span>         <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Client</span>
 	<span style="color:#a6e22e">AcquireTimeout</span> <span style="color:#66d9ef">int32</span>
@@ -339,7 +371,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 	}
 	<span style="color:#66d9ef">return</span>
 }
-</code></pre></div><p>另外一个版本：</p>
+</code></pre></div><p>版本三</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rdb</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Client</span>
 <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ctx</span> = <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
 <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">mutex</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>
@@ -369,29 +401,6 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
 	}
 	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">nums</span>
-}
-</code></pre></div><h3 id="基于zookeeper的分布式锁">基于ZooKeeper的分布式锁</h3>
-<p>ZooKeeper分布式锁是基于临时顺序节点来实现的</p>
-<ul>
-<li>临时顺序节点自动释放锁</li>
-<li>监听前一个节点的变化</li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func main() {
-	c, _, err := zk.Connect([]string{&#34;127.0.0.1&#34;}, time.Second) //*10)
-	if err != nil {
-		panic(err)
-	}
-	l := zk.NewLock(c, &#34;/lock&#34;, zk.WorldACL(zk.PermAll))
-	err = l.Lock()
-	if err != nil {
-		panic(err)
-	}
-	println(&#34;lock success, do your business logic&#34;)
-
-	time.Sleep(time.Second * 10)
-
-	l.Unlock()
-	println(&#34;unlock success, finish business logic&#34;)
 }
 </code></pre></div><h2 id="多线程">多线程</h2>
 <p>Redis支持多线程主要就是两个原因：</p>

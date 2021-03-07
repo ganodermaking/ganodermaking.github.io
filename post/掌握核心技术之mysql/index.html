@@ -266,6 +266,16 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>尽量选择访问量小的时段进行数据库操作，避开高峰时段</li>
 <li>操作数据库之前，查看是否还有未提交的事务</li>
 </ul>
+<h2 id="分布式锁">分布式锁</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查询出商品信息
+select (quantity,version) from items where id = 100;
+// step2: 根据商品信息生成订单
+insert into orders(id, item_id) values(null, 100);
+// step3: 修改商品的库存
+update items set quantity = quantity - 1, version = version + 1 where id = 100 and version = #{version};
+</code></pre></div><blockquote>
+<p>如果每次访问冲突概率小于20%，推荐使用乐观锁，否则使用悲观锁。乐观锁的重试次数不得小于3次。</p>
+</blockquote>
 
         </div>
 

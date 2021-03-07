@@ -100,7 +100,29 @@
 
         <img class="mx-auto" alt="" src="/images//ZooKeeper%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81%e5%8e%9f%e7%90%86.png" />   
     </p>
-<h2 id="选举原理">选举原理</h2>
+<p>ZooKeeper分布式锁是基于临时顺序节点来实现的</p>
+<ul>
+<li>临时顺序节点自动释放锁</li>
+<li>监听前一个节点的变化</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func main() {
+	c, _, err := zk.Connect([]string{&#34;127.0.0.1&#34;}, time.Second) //*10)
+	if err != nil {
+		panic(err)
+	}
+	l := zk.NewLock(c, &#34;/lock&#34;, zk.WorldACL(zk.PermAll))
+	err = l.Lock()
+	if err != nil {
+		panic(err)
+	}
+	println(&#34;lock success, do your business logic&#34;)
+
+	time.Sleep(time.Second * 10)
+
+	l.Unlock()
+	println(&#34;unlock success, finish business logic&#34;)
+}
+</code></pre></div><h2 id="选举原理">选举原理</h2>
 <p>当集群中leader服务器出现宕机或者不可用情况时，整个集群无法对外提供服务，进入新一轮的leader选举。</p>
 <ul>
 <li>领导者（Leader）：负责投票的发起和决议，更新服务状态。</li>

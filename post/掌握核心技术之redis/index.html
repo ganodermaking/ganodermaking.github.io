@@ -96,6 +96,7 @@
 <li>Redis多线程</li>
 <li>持久化</li>
 <li>集群方式</li>
+<li>常见问题</li>
 </ul>
 <h2 id="scan命令">SCAN命令</h2>
 <p>用于迭代数据库中的数据库键，替换keys命令</p>
@@ -104,6 +105,8 @@
 <li>HSCAN 命令用于迭代哈希键中的键值对。</li>
 <li>ZSCAN 命令用于迭代有序集合中的元素（包括元素成员和元素分值）。</li>
 </ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scan <span style="color:#ae81ff">0</span> match key99* count <span style="color:#ae81ff">1000</span> <span style="color:#75715e"># 从0开始遍历，匹配key99*，总数是1000 ，1000不是结果数量，是redis单次遍历字典槽位数量(约等于)</span>
+</code></pre></div><p>scan提供3个参数：第一个是 cursor 整数值，第二个是 key 的正则模式，第三个是遍历的 limit hint</p>
 <h2 id="geo">GEO</h2>
 <p>主要用于存储地理位置信息，并对存储的信息进行操作</p>
 <h4 id="geoadd">geoadd</h4>
@@ -445,6 +448,12 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
 </blockquote>
 <h3 id="集群模式">集群模式</h3>
 <p>插槽（slot）的取值范围是：0-16383。当我们的存取的key到达的时候，redis会根据crc16的算法得出一个结果，然后把结果对 16384 求余数，这样每个 key 都会对应一个编号在 0-16383 之间的哈希槽，通过这个值，去找到对应的插槽所对应的节点，然后直接自动跳转到这个对应的节点上进行存取操作。</p>
+<h2 id="常见问题">常见问题</h2>
+<h4 id="如何优雅的删除redis的大key">如何优雅的删除Redis的大key</h4>
+<ul>
+<li>SCAN命令渐进式删除</li>
+<li>UNLINK命令非阻塞异步删除bigkey</li>
+</ul>
 
         </div>
 

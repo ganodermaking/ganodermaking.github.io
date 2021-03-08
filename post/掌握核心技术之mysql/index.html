@@ -91,7 +91,8 @@
 <li>MySQL连接池</li>
 <li>MySQL悲观锁/乐观锁</li>
 <li>MySQL事务</li>
-<li>MySQL MVCC</li>
+<li>MVCC</li>
+<li>MySQL主从同步</li>
 <li>MySQL索引</li>
 <li>Online DDL</li>
 </ul>
@@ -189,7 +190,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </tr>
 </tbody>
 </table>
-<h2 id="mysql-mvcc">MySQL MVCC</h2>
+<h2 id="mvcc">MVCC</h2>
 <p>MVCC，Multi-Version Concurrency Control，多版本并发控制。MVCC 是一种并发控制的方法，一般在数据库管理系统中，实现对数据库的并发访问。</p>
 <p>MVCC的实现，通过保存数据在某个时间点的快照来实现的。这意味着一个事务无论运行多长时间，在同一个事务里能够看到数据一致的视图。根据事务开始的时间不同，同时也意味着在同一个时刻不同事务看到的相同表里的数据可能是不同的。MVCC手段只适用于Msyql隔离级别中的读已提交（Read committed）和可重复读（Repeatable Read）.</p>
 <p>基本特征如下：</p>
@@ -197,6 +198,14 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>每行数据都存在一个版本，每次数据更新时都更新该版本</li>
 <li>修改时Copy出当前版本随意修改，各个事务之间无干扰</li>
 <li>保存时比较版本号，如果成功（commit），则覆盖原记录；失败则放弃copy（rollback）</li>
+</ul>
+<h2 id="mysql主从同步">MySQL主从同步</h2>
+<p>
+        <img class="mx-auto" alt="" src="/images/MySQL%e4%b8%bb%e4%bb%8e%e5%90%8c%e6%ad%a5%e5%8e%9f%e7%90%86%e5%9b%be.png" />   
+    </p>
+<ul>
+<li>主库会生成一个log dump线程，用来给从库I/O线程传binlog。</li>
+<li>从库会生成两个线程，一个I/O线程，一个SQL线程；I/O线程会去请求主库的binlog，并将得到的binlog写到本地的relay-log(中继日志)文件中；SQL线程，会读取relay log文件中的日志，并解析成sql语句逐一执行。</li>
 </ul>
 <h2 id="mysql索引">MySQL索引</h2>
 <h4 id="myisam主键索引">MyISAM主键索引</h4>

@@ -281,6 +281,30 @@ MySQL 主从复制，涉及主从两个节点，一共四个四个线程参与�
 <li>如果没有定义主键，那么会使用第一非空的唯一索引作为聚簇索引</li>
 <li>如果既没有主键也找不到合适的非空索引，那么InnoDB会自动生成一个不可见的名为ROW_ID的列名为GEN_CLUST_INDEX的聚簇索引，该列是一个6字节的自增数值，随着插入而自增</li>
 </ul>
+<h4 id="数据页">数据页</h4>
+<p>页（Page）是 Innodb 存储引擎用于管理数据的最小磁盘单位。</p>
+<h4 id="索引的选择">索引的选择</h4>
+<p>设计原则：索引的设计要根据WHERE条件和ORDER BY还有GROUP BY后面的字段进行设计。</p>
+<ul>
+<li>主键设计保持自增</li>
+<li>为频繁查询的字段建立索引</li>
+<li>避免为&quot;大字段&quot;建立索引</li>
+<li>选择分布大的字段建立索引</li>
+<li>尽量为ORDER BY和GROUP BY后面的字段建立索引</li>
+<li>尽量不要在条件中使用函数</li>
+<li>频繁增删改的字段不要建立索引</li>
+</ul>
+<h4 id="分页查询优化">分页查询优化</h4>
+<p>子查询</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">SELECT * FROM devices WHERE id &gt;= (SELECT id FROM devices LIMIT 121433, 1) LIMIT 10
+</code></pre></div><p>内连接</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">SELECT * FROM devices a JOIN (SELECT id FROM devices LIMIT 121433, 10) b ON a.id = b.id
+</code></pre></div><p>索引优化
+复合索引INDEX(type,id)效率高，注意索引顺利。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">select id from devices where type=1 limit 90000,10;
+</code></pre></div><blockquote>
+<p>综上：如果对于有where条件，又想走索引用limit的，必须设计一个索引，将where放第一位，limit用到的主键放第2位，而且只能选择主键！</p>
+</blockquote>
 <h2 id="online-ddl">Online DDL</h2>
 <p>SQL语言通常按照功能划分成以下的 4 个部分：</p>
 <ul>

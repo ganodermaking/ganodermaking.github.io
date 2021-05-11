@@ -120,10 +120,10 @@ SELECT * FROM comments WHERE post_id = 1
 </ul>
 <h3 id="b树和b树的区别">B树和B+树的区别</h3>
 <ul>
-<li>B+树查询时间复杂度固定是logn，B树查询复杂度最好是 O(1)。</li>
-<li>B+树相邻接点的指针可以大大增加区间访问性，可使用在范围查询等，而B-树每个节点 key 和 data 在一起，则无法区间查找。</li>
-<li>B+树更适合外部存储，也就是磁盘存储。由于内节点无 data 域，每个节点能索引的范围更大更精确</li>
-<li>注意这个区别相当重要，是基于（1）（2）（3）的，B树每个节点即保存数据又保存索引，所以磁盘IO的次数很少，B+树只有叶子节点保存，磁盘IO多，但是区间访问比较好。</li>
+<li>B+树查询时间复杂度固定是O(logn)，B树查询时间复杂度最好是 O(1)；</li>
+<li>B+树相邻接点的指针适合范围查询；</li>
+<li>B+树更适合外部存储，也就是磁盘存储；</li>
+<li>B树每个节点保存数据，磁盘IO很少，B+树只有叶子节点保存数据，磁盘IO多，但是区间访问好。</li>
 </ul>
 <blockquote>
 <p>相对于MySQL关系型数据库，MongoDB这类nosql适用于数据模型简单，性能要求高的场合。</p>
@@ -152,7 +152,7 @@ SELECT * FROM comments WHERE post_id = 1
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/">掌握核心技术之MySQL</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">掌握核心技术之Kafka</a></li>
         
     </ul>
 </div>
@@ -247,6 +247,14 @@ SELECT * FROM comments WHERE post_id = 1
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之Kafka">掌握核心技术之Kafka</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/" title="掌握核心技术之Kubernetes">掌握核心技术之Kubernetes</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title="掌握核心技术之MongoDB">掌握核心技术之MongoDB</a>
     </li>
     
@@ -262,14 +270,6 @@ SELECT * FROM comments WHERE post_id = 1
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title="掌握核心技术之Zookeeper">掌握核心技术之Zookeeper</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -283,7 +283,7 @@ SELECT * FROM comments WHERE post_id = 1
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (9)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -307,6 +307,8 @@ SELECT * FROM comments WHERE post_id = 1
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
     <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
+    <a href="http://ganodermaking.github.io/tags/kubernetes/">Kubernetes</a>
     
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     

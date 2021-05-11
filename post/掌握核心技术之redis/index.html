@@ -86,6 +86,7 @@
         <div class="post-content">
             <p>Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作数据库、缓存和消息中间件。</p>
 <ul>
+<li>优势</li>
 <li>SCAN命令</li>
 <li>GEO</li>
 <li>Bitmaps位图</li>
@@ -101,6 +102,20 @@
 <blockquote>
 <p>采用内存操作 + 非阻塞I/O多路复用(epoll)模型 + 单线程 造就Redis具有很高的吞吐量。</p>
 </blockquote>
+<h2 id="优势">优势</h2>
+<ul>
+<li>C语言实现，虽然C对Redis的性能有助力，但语言并不是最核心因素。</li>
+<li>纯内存I/O，相较于其他基于磁盘的DB，Redis的纯内存操作有着天然的性能优势。</li>
+<li>I/O多路复用，基于epoll/select/kqueue等I/O多路复用技术，实现高吞吐的网络I/O。</li>
+<li>单线程模型，单线程无法利用多核，但是从另一个层面来说则避免了多线程频繁上下文切换，以及同步机制如锁带来的开销。</li>
+</ul>
+<p>单线程Redis为什么能支持10w+的QPS？</p>
+<ul>
+<li>IO多路复用</li>
+<li>非CPU密集型任务</li>
+<li>纯内存操作</li>
+<li>高效的数据结构</li>
+</ul>
 <h2 id="scan命令">SCAN命令</h2>
 <p>用于迭代数据库中的数据库键，替换keys命令</p>
 <ul>
@@ -180,228 +195,48 @@ BF.EXISTS app:mobile <span style="color:#ae81ff">18200130002</span>
 <h2 id="延时队列">延时队列</h2>
 <p>通过有序集合(sorted set)实现</p>
 <ul>
-<li>zadd key score1 value1 赋值</li>
-<li>zrevrange key start end withscores 查询成员分数从大到小顺序的索引 start 到 end 的所有成员。</li>
-<li>zrem key value1 value2 删除指定元素</li>
+<li>延迟的执行时间戳作为分数，分数小于当前时间戳取一条消息。</li>
+<li>删除指定元素，确保删除成功，才消费消息。</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">delayFunc</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">message</span> <span style="color:#66d9ef">interface</span>{})
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Process</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">queue</span>       <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">job</span>         <span style="color:#a6e22e">delayFunc</span>
-	<span style="color:#a6e22e">concurrency</span> <span style="color:#66d9ef">int</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewConsumer</span>(<span style="color:#a6e22e">queue</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">delayFunc</span> <span style="color:#a6e22e">delayFunc</span>, <span style="color:#a6e22e">concurrency</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Process</span>{
-		<span style="color:#a6e22e">queue</span>:       <span style="color:#a6e22e">queue</span>,
-		<span style="color:#a6e22e">job</span>:         <span style="color:#a6e22e">delayFunc</span>,
-		<span style="color:#a6e22e">concurrency</span>: <span style="color:#a6e22e">concurrency</span>,
-	}
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewProducer</span>(<span style="color:#a6e22e">queue</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Process</span>{
-		<span style="color:#a6e22e">queue</span>: <span style="color:#a6e22e">queue</span>,
-	}
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">getTask</span>() ([]<span style="color:#a6e22e">redis2</span>.<span style="color:#a6e22e">Z</span>, <span style="color:#66d9ef">error</span>) {
-	<span style="color:#a6e22e">opt</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis2</span>.<span style="color:#a6e22e">ZRangeBy</span>{
-		<span style="color:#a6e22e">Min</span>:    <span style="color:#e6db74">&#34;0&#34;</span>,
-		<span style="color:#a6e22e">Max</span>:    <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">FormatInt</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Local</span>().<span style="color:#a6e22e">UnixNano</span>(), <span style="color:#ae81ff">10</span>),
-		<span style="color:#a6e22e">Offset</span>: <span style="color:#ae81ff">0</span>,
-		<span style="color:#a6e22e">Count</span>:  <span style="color:#ae81ff">1</span>,
-	}
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Cli</span>.<span style="color:#a6e22e">ZRangeByScoreWithScores</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">queue</span>, <span style="color:#a6e22e">opt</span>).<span style="color:#a6e22e">Result</span>()
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">delTask</span>(<span style="color:#a6e22e">member</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">int64</span>, <span style="color:#66d9ef">error</span>) {
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Cli</span>.<span style="color:#a6e22e">ZRem</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">queue</span>, <span style="color:#a6e22e">member</span>).<span style="color:#a6e22e">Result</span>()
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">AddTask</span>(<span style="color:#a6e22e">members</span> <span style="color:#a6e22e">redis2</span>.<span style="color:#a6e22e">Z</span>) <span style="color:#66d9ef">error</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Cli</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">queue</span>, <span style="color:#a6e22e">members</span>).<span style="color:#a6e22e">Err</span>()
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">ConsumerTask</span>() {
-	<span style="color:#66d9ef">for</span> {
-		<span style="color:#a6e22e">tasks</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">getTask</span>()
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;ConsumerTask GetTask err: %s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
-		}
-
-		<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">tasks</span>) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
-			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1</span>)
-			<span style="color:#66d9ef">continue</span>
-		}
-
-		<span style="color:#a6e22e">del</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">delTask</span>(<span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;ConsumerTask DelTask err: %s, Member: %s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>(), <span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
-			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1</span>)
-			<span style="color:#66d9ef">continue</span>
-		}
-
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">del</span> &gt; <span style="color:#ae81ff">0</span> {
-			<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;【%d】ConsumerTask ReceiveMessage: %v&#34;</span>, <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">GetGoroutineID</span>(), <span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
-			<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">job</span>(<span style="color:#a6e22e">tasks</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Member</span>)
-		}
-	}
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">process</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Process</span>) <span style="color:#a6e22e">Run</span>() {
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">concurrency</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
-		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">ConsumerTask</span>()
-	}
-	<span style="color:#66d9ef">select</span> {}
-}
+<p>赋值</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">zadd key score1 value1 score2 value2
+</code></pre></div><p>查询成员分数从大到小顺序的索引 start 到 end 的所有成员。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">zrevrange key start end withscores
+</code></pre></div><p>删除指定元素</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">zrem key value1 value2
 </code></pre></div><h2 id="分布式锁">分布式锁</h2>
 <p>分布式锁一般有三种实现方式：1. 数据库乐观锁；2. 基于Redis的分布式锁；3. 基于ZooKeeper的分布式锁。</p>
 <ul>
-<li>加锁：判断 key 是否存在、保存 key-value、设置 key 的过期时间</li>
-<li>解锁：判断 key 是否存在、判断是否自己持有锁、删除 key-value</li>
+<li>加锁：SET key value NX PX 30000</li>
+<li>解锁：LUA脚本，保证原子性</li>
 </ul>
-<p>注意事项：</p>
-<ul>
-<li>如果key存在，但是没有剩余时间。</li>
-<li>加锁的时候的 value 必须是一个全局唯一的字符串。</li>
-<li>防止删除重新加锁的 key</li>
-</ul>
-<p>版本一</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RedisTool</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String LOCK_SUCCESS <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;OK&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String SET_IF_NOT_EXIST <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;NX&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String SET_WITH_EXPIRE_TIME <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;PX&#34;</span><span style="color:#f92672">;</span>
-
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Long RELEASE_SUCCESS <span style="color:#f92672">=</span> 1L<span style="color:#f92672">;</span>
-    
-    <span style="color:#75715e">/**
-</span><span style="color:#75715e">     * 获取分布式锁
-</span><span style="color:#75715e">     * 保证SETNX命令 + 过期时间原子性
-</span><span style="color:#75715e">     */</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">getLock</span><span style="color:#f92672">(</span>Jedis jedis<span style="color:#f92672">,</span> String lockKey<span style="color:#f92672">,</span> String value<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> expireTime<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        String result <span style="color:#f92672">=</span> jedis<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>lockKey<span style="color:#f92672">,</span> value<span style="color:#f92672">,</span> SET_IF_NOT_EXIST<span style="color:#f92672">,</span> SET_WITH_EXPIRE_TIME<span style="color:#f92672">,</span> expireTime<span style="color:#f92672">);</span>
-
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>LOCK_SUCCESS<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>result<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-
-    <span style="color:#75715e">/**
-</span><span style="color:#75715e">     * 释放分布式锁
-</span><span style="color:#75715e">     * 首先获取锁对应的value值，检查是否与value相等，如果相等则删除锁，整个过程保证原子性
-</span><span style="color:#75715e">     */</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">releaseLock</span><span style="color:#f92672">(</span>Jedis jedis<span style="color:#f92672">,</span> String lockKey<span style="color:#f92672">,</span> String value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        String script <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;if redis.call(&#39;get&#39;, KEYS[1]) == ARGV[1] then return redis.call(&#39;del&#39;, KEYS[1]) else return 0 end&#34;</span><span style="color:#f92672">;</span>
-        Object result <span style="color:#f92672">=</span> jedis<span style="color:#f92672">.</span><span style="color:#a6e22e">eval</span><span style="color:#f92672">(</span>script<span style="color:#f92672">,</span> Collections<span style="color:#f92672">.</span><span style="color:#a6e22e">singletonList</span><span style="color:#f92672">(</span>lockKey<span style="color:#f92672">),</span> Collections<span style="color:#f92672">.</span><span style="color:#a6e22e">singletonList</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>RELEASE_SUCCESS<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>result<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>版本二</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Rds</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">Client</span>         <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Client</span>
-	<span style="color:#a6e22e">AcquireTimeout</span> <span style="color:#66d9ef">int32</span>
-	<span style="color:#a6e22e">LockTimeout</span>    <span style="color:#66d9ef">int32</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewRds</span>(<span style="color:#a6e22e">host</span>, <span style="color:#a6e22e">passwd</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">db</span> <span style="color:#66d9ef">int</span>) (<span style="color:#a6e22e">rds</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Rds</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
-	<span style="color:#a6e22e">rdsOpt</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
-		<span style="color:#a6e22e">Addr</span>:     <span style="color:#a6e22e">host</span>,
-		<span style="color:#a6e22e">Password</span>: <span style="color:#a6e22e">passwd</span>,
-		<span style="color:#a6e22e">DB</span>:       <span style="color:#a6e22e">db</span>,
-	}
-	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#a6e22e">rdsOpt</span>)
-	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Ping</span>().<span style="color:#a6e22e">Result</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">rds</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Rds</span>{<span style="color:#a6e22e">Client</span>: <span style="color:#a6e22e">client</span>, <span style="color:#a6e22e">AcquireTimeout</span>: <span style="color:#ae81ff">10</span>, <span style="color:#a6e22e">LockTimeout</span>: <span style="color:#ae81ff">10</span>}
-	<span style="color:#66d9ef">return</span>
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Rds</span>) <span style="color:#a6e22e">Lock</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">identifier</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">bool</span>) {
-	<span style="color:#a6e22e">identifier</span> = <span style="color:#a6e22e">uuid</span>.<span style="color:#a6e22e">NewV4</span>().<span style="color:#a6e22e">String</span>()
-	<span style="color:#a6e22e">lockName</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;lock:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">key</span>
-	<span style="color:#a6e22e">end</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">AcquireTimeout</span>))
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Before</span>(<span style="color:#a6e22e">end</span>) {
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">SetNX</span>(<span style="color:#a6e22e">lockName</span>, <span style="color:#a6e22e">identifier</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">LockTimeout</span>)).<span style="color:#a6e22e">Val</span>() {
-			<span style="color:#75715e">// 如果key不存在，并成功设置了key
-</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">b</span> = <span style="color:#66d9ef">true</span>
-			<span style="color:#66d9ef">return</span>
-		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">TTL</span>(<span style="color:#a6e22e">lockName</span>).<span style="color:#a6e22e">Val</span>() <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
-			<span style="color:#75715e">// 如果key存在，但是没有剩余时间
-</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">Expire</span>(<span style="color:#a6e22e">lockName</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">LockTimeout</span>))
-		}
-		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Microsecond</span>)
-	}
-	<span style="color:#66d9ef">return</span>
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Rds</span>) <span style="color:#a6e22e">UnLock</span>(<span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">identifier</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">b</span> <span style="color:#66d9ef">bool</span>) {
-	<span style="color:#a6e22e">lockName</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;lock:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">key</span>
-	<span style="color:#a6e22e">txf</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">tx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Tx</span>) <span style="color:#66d9ef">error</span> {
-		<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">lockName</span>).<span style="color:#a6e22e">Result</span>()
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-		}
-
-		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Pipelined</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">pipe</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Pipeliner</span>) <span style="color:#66d9ef">error</span> {
-			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">v</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">identifier</span> {
-				<span style="color:#a6e22e">pipe</span>.<span style="color:#a6e22e">Del</span>(<span style="color:#a6e22e">lockName</span>)
-				<span style="color:#a6e22e">b</span> = <span style="color:#66d9ef">true</span>
-			}
-			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
-		})
-
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-	<span style="color:#66d9ef">for</span> {
-		<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Client</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">txf</span>, <span style="color:#a6e22e">lockName</span>) <span style="color:#75715e">// 在事务执行之前被其他命令所改动，那么事务将被打断
-</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> { <span style="color:#75715e">// 解锁成功，跳出循环
-</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">break</span>
-		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">TxFailedErr</span> {
-			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
-		}
-	}
-	<span style="color:#66d9ef">return</span>
-}
-</code></pre></div><p>版本三</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rdb</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Client</span>
-<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ctx</span> = <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
-<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">mutex</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Init</span>() {
-	<span style="color:#a6e22e">rdb</span> = <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
-		<span style="color:#a6e22e">Addr</span>:     <span style="color:#e6db74">&#34;localhost:6379&#34;</span>,
-		<span style="color:#a6e22e">Password</span>: <span style="color:#e6db74">&#34;&#34;</span>,
-		<span style="color:#a6e22e">DB</span>:       <span style="color:#ae81ff">0</span>,
-	})
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Lock</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">bool</span> {
-	<span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>()
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Unlock</span>()
-	<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">SetNX</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">10</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>).<span style="color:#a6e22e">Result</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">result</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">UnLock</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">int64</span> {
-	<span style="color:#a6e22e">nums</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">Del</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>).<span style="color:#a6e22e">Result</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
-	}
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">nums</span>
-}
+<blockquote>
+<p>Redisson分布式锁：为了解决死锁的问题，Redisson内部提供了一个监控锁的看门狗，只要Redisson实例没被关闭就不断延长锁的有效时间，默认情况下，看门狗的检查锁的超时时间是30秒，检查时间是10秒。</p>
+</blockquote>
+<h4 id="setex-key-seconds-value">SETEX key seconds value</h4>
+<p>含义（setex = set expire），将key的值设为value，并将key的生存时间设为seconds(以秒为单位)。如果key已经存在， SETEX命令将覆写旧值。</p>
+<p>该命令相当于将下面两行操作合并为一个原子操作：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">SET key value
+EXPIRE key seconds  # 设置生存时间
+</code></pre></div><h4 id="setnx-key-value">SETNX key value</h4>
+<p>含义（setnx = SET if Not eXists），将key的值设为value，当且仅当key不存在。如果key已经存在，SETNX命令不做任何动作。</p>
+<h4 id="set-key-value-nx-px-30000">SET key value NX PX 30000</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">set key value [EX seconds] [PX milliseconds] [NX|XX]
+EX seconds：设置过期时间，单位秒
+PX milliseconds：设置过期时间，单位毫秒
+NX：key不存在时设置value，成功返回OK，失败返回(nil)
+XX：key存在时设置value，成功返回OK，失败返回(nil)
+</code></pre></div><h4 id="redlock红锁算法">Redlock红锁算法</h4>
+<p>RedLock的思想是使用多台 Redis Master，节点完全独立，节点间不需要进行数据同步。</p>
+<p>锁通过 setNX（原子操作） 命令设置，在有效时间内当获得锁的数量大于 (n/2+1) 代表成功，失败后需要向所有节点发送释放锁的消息。</p>
+<p>获取锁：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">SET key value NX PX <span style="color:#ae81ff">30000</span>
+</code></pre></div><p>释放锁：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#66d9ef">if</span> redis.call<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;get&#34;</span>,KEYS<span style="color:#f92672">[</span>1<span style="color:#f92672">])</span> <span style="color:#f92672">==</span> ARGV<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#66d9ef">then</span>
+  <span style="color:#66d9ef">return</span> redis.call<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;del&#34;</span>,KEYS<span style="color:#f92672">[</span>1<span style="color:#f92672">])</span>
+<span style="color:#66d9ef">else</span>
+  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+end
 </code></pre></div><h2 id="多线程">多线程</h2>
 <p>Redis支持多线程主要就是两个原因：</p>
 <ul>
@@ -463,6 +298,26 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
 <li>SCAN命令渐进式删除</li>
 <li>UNLINK命令非阻塞异步删除bigkey</li>
 </ul>
+<h3 id="缓存穿透">缓存穿透</h3>
+<p>缓存穿透，是指查询一个数据库一定不存在的数据。</p>
+<ul>
+<li>接口校验</li>
+<li>缓存空值</li>
+<li>布隆过滤器</li>
+</ul>
+<h3 id="缓存雪崩">缓存雪崩</h3>
+<p>缓存雪崩，是指在某一个时间段，缓存集中过期失效。</p>
+<ul>
+<li>过期时间打散</li>
+<li>热点数据不过期</li>
+<li>加互斥锁</li>
+</ul>
+<h3 id="缓存击穿">缓存击穿</h3>
+<p>缓存击穿，是指一个key非常热点，在不停的扛着大并发，大并发集中对这一个点进行访问，当这个key在失效的瞬间，持续的大并发就穿破缓存，直接请求数据库，就像在一个屏障上凿开了一个洞。</p>
+<ul>
+<li>热点数据不过期</li>
+<li>加互斥锁</li>
+</ul>
 
         </div>
 
@@ -483,7 +338,7 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">掌握核心技术之Kafka</a></li>
         
     </ul>
 </div>
@@ -578,6 +433,14 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之Kafka">掌握核心技术之Kafka</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/" title="掌握核心技术之Kubernetes">掌握核心技术之Kubernetes</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title="掌握核心技术之MongoDB">掌握核心技术之MongoDB</a>
     </li>
     
@@ -593,14 +456,6 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title="掌握核心技术之Zookeeper">掌握核心技术之Zookeeper</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -614,7 +469,7 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (9)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -638,6 +493,8 @@ appendfsync no       <span style="color:#75715e"># 完全依赖os，但性能最
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
     <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
+    <a href="http://ganodermaking.github.io/tags/kubernetes/">Kubernetes</a>
     
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     

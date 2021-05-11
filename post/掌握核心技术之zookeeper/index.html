@@ -124,10 +124,26 @@
 }
 </code></pre></div><h2 id="选举原理">选举原理</h2>
 <p>当集群中leader服务器出现宕机或者不可用情况时，整个集群无法对外提供服务，进入新一轮的leader选举。</p>
+<p>三个核心选举原则：</p>
 <ul>
-<li>领导者（Leader）：负责投票的发起和决议，更新服务状态。</li>
-<li>跟随者（Follower）：Follower用于接受客户端请求并向客户端返回结果，在选举过程中参与投票。</li>
-<li>观察者（ObServer）：ObServer可接收客户端连接，将写请求发送给Leader节点。</li>
+<li>
+<p>Zookeeper集群中只有超过半数以上的服务器启动，集群才能正常工作；</p>
+</li>
+<li>
+<p>在集群正常工作之前，myid小的服务器给myid大的服务器投票，直到集群正常工作，选出Leader；</p>
+</li>
+<li>
+<p>选出Leader之后，之前的服务器状态由Looking改变为Following，以后的服务器都是Follower。</p>
+</li>
+<li>
+<p>领导者（Leader）：负责投票的发起和决议，更新服务状态。</p>
+</li>
+<li>
+<p>跟随者（Follower）：Follower用于接受客户端请求并向客户端返回结果，在选举过程中参与投票。</p>
+</li>
+<li>
+<p>观察者（ObServer）：ObServer可接收客户端连接，将写请求发送给Leader节点。</p>
+</li>
 </ul>
 <blockquote>
 <p>ObServer不参与投票过程，只同步Leader的状态。ObServer目的是为了扩展系统，提高读取效率。</p>
@@ -178,7 +194,7 @@
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">掌握核心技术之Kafka</a></li>
         
     </ul>
 </div>
@@ -273,6 +289,14 @@
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之Kafka">掌握核心技术之Kafka</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/" title="掌握核心技术之Kubernetes">掌握核心技术之Kubernetes</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title="掌握核心技术之MongoDB">掌握核心技术之MongoDB</a>
     </li>
     
@@ -288,14 +312,6 @@
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title="掌握核心技术之Zookeeper">掌握核心技术之Zookeeper</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -309,7 +325,7 @@
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (9)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -333,6 +349,8 @@
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
     <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
+    <a href="http://ganodermaking.github.io/tags/kubernetes/">Kubernetes</a>
     
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     

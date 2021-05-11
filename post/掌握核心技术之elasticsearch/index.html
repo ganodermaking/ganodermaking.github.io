@@ -85,24 +85,30 @@
         
         <div class="post-content">
             <p>Elasticsearch 是一个分布式可扩展的实时搜索和分析引擎，一个建立在全文搜索引擎 Apache Lucene(TM) 基础上的搜索引擎。使用一种称为 <code>倒排索引</code> 的结构，它适用于快速的全文搜索。</p>
+<blockquote>
+<p>分片和复制的数量可以在索引创建的时候指定。在索引创建之后，你可以在任何时候动态地改变复制数量，但是不能改变分片的数量。</p>
+</blockquote>
 <ul>
 <li>Elasticsearch索引</li>
 <li>Elasticsearch分词器</li>
 <li>为什么Elasticsearch/Lucene检索可以比MySQL快</li>
 </ul>
-<h2 id="elasticsearch索引">Elasticsearch索引</h2>
-<p>Elasticsearch索引 使用的是一种名为倒排索引的数据结构，这一结构的设计可以允许十分快速地进行全文本搜索。类比现代汉语词典的话，Term Index相当于词典的目录索引，Term Dictionary相当于汉语词典本身，Term相当于词语。</p>
-<h4 id="term单词">Term（单词）</h4>
-<p>一段文本经过分析器分析以后就会输出一串单词，这一个一个的就叫做Term。</p>
-<h4 id="term-dictionary单词字典">Term Dictionary（单词字典）</h4>
+<h2 id="开始使用">开始使用</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">docker network create elastic-net
+docker run -d --name elasticsearch --net elastic-net -p 9200:9200 -p 9300:9300 -e ES_JAVA_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-Xms256m -Xmx256m&#34;</span> -e <span style="color:#e6db74">&#34;discovery.type=single-node&#34;</span> elasticsearch:7.11.2
+docker run -d --name logstash --net elastic-net -p 4560:4560 logstash:7.11.2
+docker run -d --name kibana --net elastic-net -p 5601:5601 kibana:7.11.2
+docker run -d --name<span style="color:#f92672">=</span>apm-server --user<span style="color:#f92672">=</span>apm-server --publish<span style="color:#f92672">=</span>8200:8200 --net<span style="color:#f92672">=</span>elastic-net elastic/apm-server:7.11.2 --strict.perms<span style="color:#f92672">=</span>false -e -E output.elasticsearch.hosts<span style="color:#f92672">=[</span><span style="color:#e6db74">&#34;elasticsearch:9200&#34;</span><span style="color:#f92672">]</span>
+</code></pre></div><h2 id="倒排索引">倒排索引</h2>
+<p>Elasticsearch 使用一种称为 倒排索引 的结构，它适用于快速的全文搜索。一个倒排索引由文档中所有不重复词的列表构成。类比现代汉语词典的话，Term Index相当于词典的目录索引，Term Dictionary相当于汉语词典本身，Term相当于词语。</p>
+<blockquote>
+<p>将磁盘里的东西尽量搬进内存，减少磁盘随机读取次数(同时也利用磁盘顺序读特性)，结合各种奇技淫巧的压缩算法，用及其苛刻的态度使用内存。</p>
+</blockquote>
+<h2 id="单词字典">单词字典</h2>
 <p>为了能快速找到某个单词，将所有的单词排个序，这就是Term Dictionary。</p>
-<h4 id="term-index单词索引">Term Index（单词索引）</h4>
+<h2 id="单词索引">单词索引</h2>
 <p>单词前缀与Term Dictionary的block之间的映射关系，这就是Term Index。再结合FST的压缩技术，可以使term index缓存到内存中。从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数。</p>
-<h4 id="posting-list倒排列表">Posting List（倒排列表）</h4>
-<p>倒排列表记录了出现过某个单词的所有文档的文档列表及单词在该文档中出现的位置信息，每条记录称为一个倒排项。</p>
-<h4 id="fst压缩技术">FST压缩技术</h4>
-<p>FST以字节的方式存储所有的term，这种压缩方式可以有效的缩减存储空间，使得term index足以放进内存，但这种方式也会导致查找时需要更多的CPU资源。</p>
-<h2 id="elasticsearch分词器">Elasticsearch分词器</h2>
+<h2 id="分词器">分词器</h2>
 <p>ik分词器有两种分词模式：ik_max_word和ik_smart模式。</p>
 <ul>
 <li>会将文本做最细粒度的拆分，比如会将“中华人民共和国人民大会堂”拆分为“中华人民共和国、中华人民、中华、华人、人民共和国、人民、共和国、大会堂、大会、会堂等词语。</li>
@@ -115,12 +121,12 @@
 </ul>
 <h4 id="b树">B+树</h4>
 <p>所有的非叶子都不存放数据，只是作为叶子节点的索引，数据全部都存放在叶子节点。这样所有叶子节点的数据都是有序存放的，便能很好的支持区间查询。只需要先通过查询到起始节点的位置，然后在叶子节点中依次往后遍历即可。</p>
-<h4 id="倒排索引">倒排索引</h4>
+<h4 id="倒排索引-1">倒排索引</h4>
 <p>
         <img class="mx-auto" alt="" src="/images/%e5%80%92%e6%8e%92%e7%b4%a2%e5%bc%95.jpg" />   
     
-既然无法将整个 Term Dictionary 放入内存中，那我们可以为Term Dictionary 创建一个索引然后放入内存中。这样便可以高效的查询Term Dictionary，最后再通过Term Dictionary 查询到 Posting List。</p>
-<p>如果我们是以 j 开头的 Term 进行搜索，首先第一步就是通过在内存中的 Term Index 查询出以 j 打头的 Term 在 Term Dictionary 字典文件中的哪个位置（这个位置可以是一个文件指针，可能是一个区间范围）。紧接着在将这个位置区间中的所有 Term 取出，由于已经排好序，便可通过二分查找快速定位到具体位置；这样便可查询出 Posting List。最终通过 Posting List 中的位置信息便可在原始文件中将目标数据检索出来。</p>
+既然无法将整个单词字典放入内存中，那我们可以为单词字典创建一个索引然后放入内存中。这样便可以高效的查询单词字典，最后再通过单词字典查询到 Posting List。</p>
+<p>如果我们是以 j 开头的单词进行搜索，首先第一步就是通过在内存中的单词索引查询出以 j 打头的单词在单词字典字典文件中的哪个位置。紧接着在将这个位置区间中的所有单词取出，由于已经排好序，便可通过二分查找快速定位到具体位置；这样便可查询出 Posting List。最终通过 Posting List 中的位置信息便可在原始文件中将目标数据检索出来。</p>
 <h4 id="b树和倒排索引区别">B+树和倒排索引区别</h4>
 <p>
         <img class="mx-auto" alt="" src="/images/ElasticSearch%e5%92%8cMySQ%e7%b4%a2%e5%bc%95%e5%8c%ba%e5%88%ab.png" />   
@@ -143,9 +149,9 @@
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">掌握核心技术之Kafka</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmysql/">掌握核心技术之MySQL</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/">掌握核心技术之Kubernetes</a></li>
         
     </ul>
 </div>
@@ -240,6 +246,14 @@
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之Kafka">掌握核心技术之Kafka</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/" title="掌握核心技术之Kubernetes">掌握核心技术之Kubernetes</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title="掌握核心技术之MongoDB">掌握核心技术之MongoDB</a>
     </li>
     
@@ -255,14 +269,6 @@
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title="掌握核心技术之Zookeeper">掌握核心技术之Zookeeper</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -276,7 +282,7 @@
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (9)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -300,6 +306,8 @@
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
     <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
+    <a href="http://ganodermaking.github.io/tags/kubernetes/">Kubernetes</a>
     
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     

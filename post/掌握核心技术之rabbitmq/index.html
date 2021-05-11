@@ -213,7 +213,7 @@ public void receiveD(Message message, Channel channel) throws IOException {
 <h4 id="如何保rabbitmq证消息的有序性">如何保rabbitmq证消息的有序性</h4>
 <ul>
 <li>拆分多个 queue，每个 queue 一个 consumer；</li>
-<li>一个 queue对应一个 consumer，再用内存队列做排队，然后分发给不worker处理。</li>
+<li>一个 queue对应一个 consumer，再用内存队列做排队，然后分发给worker处理。</li>
 </ul>
 <h4 id="消息基于什么传输">消息基于什么传输</h4>
 <p>由于TCP连接的创建和销毁开销较大，且并发数受系统资源限制，会造成性能瓶颈。RabbitMQ使用信道的方式来传输数据。信道是建立在真实的TCP连接内的虚拟连接，且每条TCP连接上的信道数量没有限制。</p>
@@ -237,7 +237,7 @@ public void receiveD(Message message, Channel channel) throws IOException {
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">掌握核心技术之Kafka</a></li>
         
     </ul>
 </div>
@@ -332,6 +332,14 @@ public void receiveD(Message message, Channel channel) throws IOException {
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之Kafka">掌握核心技术之Kafka</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/" title="掌握核心技术之Kubernetes">掌握核心技术之Kubernetes</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title="掌握核心技术之MongoDB">掌握核心技术之MongoDB</a>
     </li>
     
@@ -347,14 +355,6 @@ public void receiveD(Message message, Channel channel) throws IOException {
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title="掌握核心技术之Zookeeper">掌握核心技术之Zookeeper</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -368,7 +368,7 @@ public void receiveD(Message message, Channel channel) throws IOException {
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (9)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -392,6 +392,8 @@ public void receiveD(Message message, Channel channel) throws IOException {
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
     <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
+    <a href="http://ganodermaking.github.io/tags/kubernetes/">Kubernetes</a>
     
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     

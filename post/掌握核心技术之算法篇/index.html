@@ -7,21 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
 
-    <title>Zookeeper | 周小猪</title>
-    <meta property="og:title" content="Zookeeper - 周小猪">
+    <title>掌握核心技术之算法 | 周小猪</title>
+    <meta property="og:title" content="掌握核心技术之算法 - 周小猪">
     <meta property="og:type" content="article">
         
+    <meta property="article:published_time" content='2021-01-13T15:33:14&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2021-01-13T15:33:14&#43;08:00'>
         
     <meta name="Keywords" content="elastic search">
-    <meta name="description" content="Zookeeper">
+    <meta name="description" content="掌握核心技术之算法">
         
     <meta name="author" content="周小猪">
-    <meta property="og:url" content="http://ganodermaking.github.io/tags/zookeeper/">
+    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95%E7%AF%87/">
     <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
 
     <link rel="stylesheet" href='/css/normalize.css'>
     <link rel="stylesheet" href='/css/style.css'>
-    <link rel="alternate" type="application/rss+xml+xml" href="http://ganodermaking.github.io/tags/zookeeper/index.xml" title="周小猪" />
     <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
@@ -47,7 +50,7 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="" href="http://ganodermaking.github.io/">首页</a>
+                    <a class="current" href="http://ganodermaking.github.io/">首页</a>
                     
                 </nav>
             </div>
@@ -63,44 +66,245 @@
                     
 <div class="res-cons">
     
-    <h3 class="archive-title">
-        包含标签
-        <span class="keyword">Zookeeper</span>
-        的文章
-    </h3>
-    
-
-    
     <article class="post">
         <header>
-            <h1 class="post-title">
-                <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/">掌握核心技术之Zookeeper</a>
-            </h1>
+            <h1 class="post-title">掌握核心技术之算法</h1>
         </header>
         <date class="post-meta meta-date">
             2021年1月13日
         </date>
         
-        <div class="post-meta meta-category">
-            |
+        <div class="post-meta">
+            <span>|</span>
             
-            <a href='/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6'>中间件</a>
+            <span class="meta-category"><a href='/categories/%E7%AE%97%E6%B3%95'>算法</a></span>
             
         </div>
         
+        
+        
         <div class="post-content">
-            ZooKeeper是一个针对大型分布式系统的可靠协调系统，提供的功能包括：配置维护、名字服务、分布式同步、组服务等。……
-            <p class="readmore"><a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/">阅读全文</a></p>
+            <p>算法（Algorithm）是指解题方案的准确而完整的描述，是一系列解决问题的清晰指令，算法代表着用系统的方法描述解决问题的策略机制。</p>
+<ul>
+<li>冒泡算法</li>
+<li>漏桶算法</li>
+<li>令牌桶算法</li>
+<li>一致哈希算法</li>
+</ul>
+<h2 id="冒泡算法">冒泡算法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func sort(s []int) []int {
+	for i := 0; i &lt; len(s); i++ {
+		for j := 0; j &lt; len(s)-i-1; j++ {
+			if s[j] &gt; s[j+1] {
+				s[j], s[j+1] = s[j+1], s[j]
+			}
+		}
+	}
+	return s
+}
+</code></pre></div><h2 id="漏桶算法">漏桶算法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">type rateLimiter struct {
+	lock     *sync.Mutex
+	rate     float64   // 最大速率限制
+	balance  float64   // 漏桶的余量
+	limit    float64   // 漏桶的最大容量限制
+	lastTime time.Time // 上次检查的时间
+}
+
+func NewRateLimiter(rate, balance int) *rateLimiter {
+	return &amp;rateLimiter{
+		lock:     new(sync.Mutex),
+		rate:     float64(rate),
+		balance:  float64(balance),
+		limit:    float64(balance),
+		lastTime: time.Now(),
+	}
+}
+
+func (r *rateLimiter) Check() bool {
+	ok := false
+	r.lock.Lock()
+
+	now := time.Now()
+	dur := now.Sub(r.lastTime).Seconds()
+
+	r.lastTime = now
+	r.balance += dur * r.rate    // 漏桶流出water容量的水，自然漏桶的余量多出water
+
+	if r.balance &gt; r.limit {
+		r.balance = r.limit
+	}
+
+	if r.balance &gt;= 1 { // 漏桶余量足够容下当前的请求
+		r.balance -= 1
+		ok = true
+	}
+
+	r.lock.Unlock()
+	return ok
+}
+
+func main()  {
+	rateLimiter := NewRateLimiter(5, 1)
+
+	count := 0
+	for i := 0; i &lt; 1000; i++ {
+		if rateLimiter.Check() {
+			fmt.Println(i)
+			count++
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+</code></pre></div><h2 id="令牌桶算法">令牌桶算法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">func pushToken(rate, limit int) chan struct{} {
+	ch := make(chan struct{}, limit)
+	ticker := time.NewTicker(time.Duration(1) * time.Second)
+	for i := 0; i &lt; limit; i++ {
+		ch &lt;- struct{}{}
+	}
+
+	go func() {
+		for {
+			for i := 0; i &lt; rate; i++ {
+				ch &lt;- struct{}{}
+			}
+			&lt;-ticker.C
+		}
+	}()
+	return ch
+}
+
+func popToken(bucket chan struct{}, n int) {
+	for i := 0; i &lt; n; i++ {
+		&lt;-bucket
+	}
+}
+
+func main() {
+	rate := 10
+	ch := pushToken(rate, 20)
+
+	for i := 0; i &lt;= 1000; i += rate {
+		popToken(ch, rate)
+		fmt.Println(i)
+	}
+}
+</code></pre></div><blockquote>
+<p>如果要让自己的系统不被打垮，用令牌桶。如果保证别人的系统不被打垮，用漏桶算法。</p>
+</blockquote>
+<h2 id="一致哈希算法">一致哈希算法</h2>
+<p>服务器节点计算Hash值，映射到环上。存储key计算Hash值，映射到环上，数据存储的位置是沿顺时针的方向找到的环上的第一个节点。就是普通取模哈希算法的改良版，哈希函数计算方法不变，只不过是通过构建环状的Hash空间代替普通的线性Hash空间。一致性哈希能把节点宕机造成的影响控制在顺时针相邻节点之间，避免对整个集群造成影响。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">const DefaultReplicas = 100
+
+type SortKeys []uint32
+
+func (sk SortKeys) Len() int {
+	return len(sk)
+}
+
+func (sk SortKeys) Less(i, j int) bool {
+	return sk[i] &lt; sk[j]
+}
+
+func (sk SortKeys) Swap(i, j int) {
+	sk[i], sk[j] = sk[j], sk[i]
+}
+
+type HashRing struct {
+	Nodes map[uint32]string
+	Keys  SortKeys
+	sync.RWMutex
+}
+
+func (hr *HashRing) New(nodes []string) {
+	if nodes == nil {
+		return
+	}
+
+	hr.Nodes = make(map[uint32]string)
+	hr.Keys = SortKeys{}
+	for _, node := range nodes {
+		for i := 0; i &lt; DefaultReplicas; i++ {
+			str := node + strconv.Itoa(i)
+			hr.Nodes[hr.hashStr(str)] = node
+			hr.Keys = append(hr.Keys, hr.hashStr(str))
+		}
+	}
+	sort.Sort(hr.Keys)
+}
+
+func (hr *HashRing) GetNode(key string) string {
+	hr.RLock()
+	defer hr.RUnlock()
+	hash := hr.hashStr(key)
+	i := hr.getPosition(hash)
+	return hr.Nodes[hr.Keys[i]]
+}
+
+func (hr *HashRing) hashStr(key string) uint32 {
+	return crc32.ChecksumIEEE([]byte(key))
+}
+
+func (hr *HashRing) getPosition(hash uint32) int {
+	i := sort.Search(len(hr.Keys), func(i int) bool {
+		return hr.Keys[i] &gt;= hash
+	})
+
+	if i &lt; len(hr.Keys) {
+		if i == len(hr.Keys) - 1 {
+			return 0
+		} else {
+			return i
+		}
+	} else {
+		return len(hr.Keys) - 1
+	}
+}
+</code></pre></div><blockquote>
+<p>普通哈希算法实现的缓存负载均衡存在扩展能力和容错能力差问题和一致性哈希算法也存在数据倾斜和节点雪崩。</p>
+</blockquote>
+
+        </div>
+
+        
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1/">掌握核心技术之微服务</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%BD%91%E7%BB%9C%E7%AF%87/">掌握核心技术之网络</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/">掌握核心技术之ElasticSearch</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Beureka/">掌握核心技术之Eureka</a></li>
+        
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bgolang/">掌握核心技术之Golang</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/%E7%AE%97%E6%B3%95'>算法</a></li>
+                
+            </ul>
+            
         </div>
     </article>
     
-
     
 
-
-
-
-
+    
+    
 </div>
 
                     <footer id="footer">
@@ -123,6 +327,16 @@
 </footer>
 
 
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
 <a id="rocket" href="#top"></a>
 <script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>

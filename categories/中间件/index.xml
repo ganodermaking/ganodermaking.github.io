@@ -26,6 +26,24 @@
     </item>
     
     <item>
+      <title>掌握核心技术之Kafka</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/</guid>
+      <description>Kafka是高吞吐低延迟的高并发、高性能的消息中间件。Kafka是一个分布式、支持分区的（partition）、多副本的（replica），基于zookeeper协调的分布式消息系统。</description>
+    </item>
+    
+    <item>
+      <title>掌握核心技术之Kubernetes</title>
+      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/</link>
+      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
+      
+      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/</guid>
+      <description>Kubernetes 是一个可移植的、可扩展的开源平台，用于管理容器化的工作负载和服务，可促进声明式配置和自动化。 Kubernetes 拥有一个庞大且快速增长的生态系统。Kubernetes 的服务、支持和工具广泛可用。</description>
+    </item>
+    
+    <item>
       <title>掌握核心技术之MongoDB</title>
       <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/</link>
       <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
@@ -68,15 +86,6 @@
       
       <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/</guid>
       <description>ZooKeeper是一个针对大型分布式系统的可靠协调系统，提供的功能包括：配置维护、名字服务、分布式同步、组服务等。</description>
-    </item>
-    
-    <item>
-      <title>掌握核心技术之微服务</title>
-      <link>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/</link>
-      <pubDate>Wed, 13 Jan 2021 15:33:14 +0800</pubDate>
-      
-      <guid>http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/</guid>
-      <description>Kafka是高吞吐低延迟的高并发、高性能的消息中间件。</description>
     </item>
     
   </channel>

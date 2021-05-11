@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
 
-    <title>掌握核心技术之Kafka | 周小猪</title>
-    <meta property="og:title" content="掌握核心技术之Kafka - 周小猪">
+    <title>掌握核心技术之Kubernetes | 周小猪</title>
+    <meta property="og:title" content="掌握核心技术之Kubernetes - 周小猪">
     <meta property="og:type" content="article">
         
     <meta property="article:published_time" content='2021-01-13T15:33:14&#43;08:00'>
@@ -17,10 +17,10 @@
     <meta property="article:modified_time" content='2021-01-13T15:33:14&#43;08:00'>
         
     <meta name="Keywords" content="elastic search">
-    <meta name="description" content="掌握核心技术之Kafka">
+    <meta name="description" content="掌握核心技术之Kubernetes">
         
     <meta name="author" content="周小猪">
-    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">
+    <meta property="og:url" content="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/">
     <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
 
     <link rel="stylesheet" href='/css/normalize.css'>
@@ -68,7 +68,7 @@
     
     <article class="post">
         <header>
-            <h1 class="post-title">掌握核心技术之Kafka</h1>
+            <h1 class="post-title">掌握核心技术之Kubernetes</h1>
         </header>
         <date class="post-meta meta-date">
             2021年1月13日
@@ -84,101 +84,100 @@
         
         
         <div class="post-content">
-            <p>Kafka是高吞吐低延迟的高并发、高性能的消息中间件。Kafka是一个分布式、支持分区的（partition）、多副本的（replica），基于zookeeper协调的分布式消息系统。</p>
+            <p>Kubernetes 是一个可移植的、可扩展的开源平台，用于管理容器化的工作负载和服务，可促进声明式配置和自动化。 Kubernetes 拥有一个庞大且快速增长的生态系统。Kubernetes 的服务、支持和工具广泛可用。</p>
+<p>Kubernetes可以看做云原生时代的操作系统，统一管理下层的基础设施，如计算资源、网络资源、存储资源等等。</p>
+<p>Kubernetes 为你提供了一个可弹性运行分布式系统的框架。 Kubernetes 会满足你的扩展要求、故障转移、部署模式等。</p>
+<p>Kubernetes 是一款基础设施工具，可对多种不同计算资源（例如虚拟 / 物理机）进行分组，使其呈现为统一的巨量计算资源，从而供应用程序使用或与其他人共享。</p>
+<p>Kubernetes 是用于自动部署，扩展和管理容器化应用程序的开源系统。</p>
 <ul>
-<li>分区</li>
-<li>磁盘顺序写</li>
-<li>消息批量压缩发送</li>
-<li>标准化二进制消息格式</li>
-<li>页缓存</li>
-<li>内存映射文件</li>
-<li>零拷贝技术</li>
+<li>服务发现和负载均衡</li>
+<li>自动部署和回滚</li>
+<li>自我修复</li>
 </ul>
-<blockquote>
-<p>topic是逻辑的概念，partition是物理的概念，对用户来说是透明的。一个partition里理论上可以包含任意多个segment，segment对应一个文件（实现上对应2个文件，一个数据文件，一个索引文件），一个partition对应一个文件夹。</p>
-</blockquote>
-<h2 id="分区">分区</h2>
+<h2 id="docker">Docker</h2>
+<p>Docker是通过内核虚拟化技术（namespaces及cgroups cpu、内存、磁盘io等）来提供容器的资源隔离与安全保障等。</p>
+<p>Namespace 是 Linux 内核用来隔离内核资源的方式。</p>
+<h2 id="kubernetes">Kubernetes</h2>
 <ul>
-<li>方便集群扩展，每个Partition可以通过调整大小以适应它所在的机器，而一个 topic又可以由多个 Partition组成，因此整个集群就可以适应任意大小的数据。</li>
-<li>可以提高并发，分区之后就可以以Partition为单位读写。</li>
+<li>Pod: 最小执行调度单元</li>
+<li>Deployment: 部署无状态应用</li>
+<li>Daemonset: 部署守护应用</li>
+<li>Cronjob:部署定时任务</li>
+<li>Job: 部署一次性的任务</li>
+<li>StatefulSet: 部署有状态应用</li>
 </ul>
-<h2 id="磁盘顺序写">磁盘顺序写</h2>
+<h2 id="服务发现和负载均衡">服务发现和负载均衡</h2>
+<p>Kubernetes 可以使用 DNS 名称或自己的 IP 地址公开容器，如果进入容器的流量很大， Kubernetes 可以负载均衡并分配网络流量，从而使部署稳定。</p>
+<h2 id="自动部署和回滚">自动部署和回滚</h2>
+<p>你可以使用 Kubernetes 描述已部署容器的所需状态，它可以以受控的速率将实际状态 更改为期望状态。例如，你可以自动化 Kubernetes 来为你的部署创建新容器， 删除现有容器并将它们的所有资源用于新容器。</p>
+<h2 id="自我修复">自我修复</h2>
+<p>Kubernetes 重新启动失败的容器、替换容器、杀死不响应用户定义的 运行状况检查的容器，并且在准备好服务之前不将其通告给客户端。</p>
+<h2 id="deployment">Deployment</h2>
+<p>Deployment 创建 ReplicaSet 和 Pod，还支持常见的更新、心跳检查、扩容和缩容运维等操作。</p>
+<p>定义资源如下：</p>
 <ul>
-<li>磁盘顺序写速度超过内存随机读写</li>
-<li>JVM的GC效率低，内存占用大，使用磁盘可以避免这一问题</li>
-<li>系统冷启动后，磁盘上的缓存依然可用</li>
+<li>副本数</li>
+<li>滚动发布的规则</li>
+<li>hosts定义</li>
+<li>探针</li>
+<li>环境变量</li>
+<li>cpu或者内存限制</li>
 </ul>
-<h2 id="如何保kafka证消息的有序性">如何保kafka证消息的有序性</h2>
+<h2 id="service">Service</h2>
+<p>通过Service可以获得稳定的IP地址，且在Service的生命周期有效，与Pod的IP地址变化与否无关。</p>
+<p>必须了解的一点是 Service 的访问信息在 Kubernetes 集群内是有效的，集群之外是无效的。</p>
+<p>Service可以看作是一组提供相同服务的Pod对外的访问接口。借助Service，应用可以方便地实现服务发现和负载均衡。</p>
+<p>Service提供的是 Round Robin 方式的负载均衡。</p>
+<p>Service部署的缺点：</p>
 <ul>
-<li>一个 topic，一个 partition，一个 consumer；</li>
-<li>消息发送到指定partition分区。</li>
+<li>ClusterIP方式，只能在集群内部访问。</li>
+<li>NodePort方式，测试环境使用还行，当有几十上百的服务在集群中运行时，NodePort的端口管理是灾难。</li>
+<li>LoadBalance方式，受限于云平台，且通常在云平台部署ELB还需要额外的费用。</li>
 </ul>
-<h2 id="生产者分区策略">生产者分区策略</h2>
-<p>分区策略的定义：决定生产者将消息发送到哪个分区的算法。</p>
-<p>默认的分区策略：</p>
+<h2 id="service的三种类型">Service的三种类型</h2>
+<p>Kubernetes的三种外部访问方式：NodePort、LoadBalancer和Ingress。</p>
+<h3 id="clusterip">ClusterIP</h3>
+<p>该方式是指通过集群的内部 IP 暴露服务，但此服务只能够在集群内部可以访问，这种方式也是默认的 ServiceType。</p>
+<h3 id="nodeport">NodePort</h3>
+<p>NodePort 服务是引导外部流量到你的服务的最原始方式。NodePort，正如这个名字所示，在所有节点（虚拟机）上开放一个特定端口，任何发送到该端口的流量都被转发到对应服务。NodePort 服务特征如下：</p>
 <ul>
-<li>如果在发消息的时候指定了分区，则消息投递到指定的分区。</li>
-<li>如果没有指定分区，但是消息的key不为空，则基于key的哈希值来选择一个分区。</li>
-<li>如果既没有指定分区，且消息的key也是空，则用轮询或随机的方式选择一个分区。</li>
+<li>每个端口只能是一种服务</li>
+<li>端口范围只能是 30000-32767（可调）</li>
+<li>不在 YAML 配置文件中指定则会分配一个默认端口</li>
 </ul>
-<h4 id="轮询策略">轮询策略</h4>
-<p>
-        <img class="mx-auto" alt="" src="/images/kafka%e7%94%9f%e4%ba%a7%e8%80%85%e5%88%86%e5%8c%ba%e7%ad%96%e7%95%a5-%e8%bd%ae%e8%af%a2%e7%ad%96%e7%95%a5.png" />   
-    </p>
-<ul>
-<li>优点：可以提供非常优秀的负载均衡能力，可以保证消息被平均分配到所有分区上。</li>
-<li>缺点：无法保证消息的有序性。</li>
-</ul>
-<blockquote>
-<p>新版kafka默认为轮询策略</p>
-</blockquote>
-<h4 id="随机策略">随机策略</h4>
-<p>
-        <img class="mx-auto" alt="" src="/images/kafka%e7%94%9f%e4%ba%a7%e8%80%85%e5%88%86%e5%8c%ba%e7%ad%96%e7%95%a5-%e9%9a%8f%e6%9c%ba%e7%ad%96%e7%95%a5.png" />   
-    </p>
-<ul>
-<li>优点：消息的分区选择逻辑简单。</li>
-<li>缺点：负载均衡能力一般，也无法保证消息的有序性。</li>
-</ul>
-<h4 id="hash策略">hash策略</h4>
-<p>
-        <img class="mx-auto" alt="" src="/images/kafka%e7%94%9f%e4%ba%a7%e8%80%85%e5%88%86%e5%8c%ba%e7%ad%96%e7%95%a5-hash%e7%ad%96%e7%95%a5.png" />   
-    
-kafka允许为每条消息定义消息key，可以根据key来为消息选择分区。</p>
-<ul>
-<li>优点：可以保证相同key的消息被发送到相同的分区，因此可以保证相同key的所有消息之间的顺序性。</li>
-<li>缺点：可能会产生数据倾斜 —— 取决于数据中key的分布，以及使用的hash算法。</li>
-</ul>
-<blockquote>
-<p>如果指定了key，默认分区策略为hash策略</p>
-</blockquote>
-<h2 id="消费者分区策略">消费者分区策略</h2>
-<ul>
-<li>同一时刻，一条消息只能被组中的一个消费者实例消费，不同组之间的消费不产生影响</li>
-<li>最理想的情况：一个消费者负责一个分区</li>
-<li>消费者数大于分区数：一个消费者最多消费一个分区</li>
-<li>消费者数小于等于分区数：一个消费者会负责多个分区</li>
-</ul>
-<p>消费者数小于等于分区数，消费者如何分配：</p>
+<h3 id="loadbalancer">LoadBalancer</h3>
+<p>LoadBalancer 服务是暴露服务到 Internet 的标准方式。所有通往你指定的端口的流量都会被转发到对应的服务。它没有过滤条件，没有路由等。这意味着你几乎可以发送任何种类的流量到该服务，像 HTTP，TCP，UDP，WebSocket，gRPC 或其它任意种类。</p>
+<h3 id="externalname">ExternalName</h3>
+<p>通过Service的ExternalName类型即可实现跨namespace名称空间与Service通信。</p>
+<h3 id="ingress">Ingress</h3>
+<p>定义资源如下：</p>
 <ul>
 <li>
-<p>随机策略是基于每个主题的。假设有两个消费者C0和C1，两个主题t0和t1，每个主题有3个分区，分别是t0p0，t0p1，t0p2，t1p0，t1p1，t1p2，那么分配结果如下：
-C0: [t0p0, t0p1, t1p0, t1p1]
-C1: [t0p2, t1p2]</p>
+<p>流量控制</p>
 </li>
 <li>
-<p>轮询分配策略是基于所有可用的消费者和所有可用的分区的。假设有两个消费者C0和C1，两个主题t0和t1，每个主题有3个分区，分别是t0p0，t0p1，t0p2，t1p0，t1p1，t1p2，那么分配结果如下：
-C0: [t0p0, t0p2, t1p1]
-C1: [t0p1, t1p0, t1p2]</p>
+<p>灰度发布</p>
+</li>
+<li>
+<p>Ingress 公开了从集群外部到集群内服务的 HTTP 和 HTTPS 路由。 流量路由由 Ingress 资源上定义的规则控制。</p>
+</li>
+<li>
+<p>Ingress相当于一个7层的负载均衡器，是k8s对反向代理的一个抽象。</p>
+</li>
+<li>
+<p>ingress对象是用来告诉ingress-controller该如何转发请求。</p>
 </li>
 </ul>
-<p>使用RoundRobin策略有两个前提条件必须满足：</p>
-<ul>
-<li>同一个Consumer Group里面的所有消费者的num.streams必须相等；</li>
-<li>每个消费者订阅的主题必须相同。</li>
-</ul>
-<h2 id="零拷贝技术">零拷贝技术</h2>
-<p>全程CPU拷贝，这也是零拷贝这一说法的来源。</p>
+<h3 id="rancher-16">Rancher 1.6</h3>
+<p>Rancher 1.6是Docker和Kubernetes的容器编排平台，为负载均衡提供了功能丰富的支持。Rancher 1.6中，用户可以通过使用开箱即用的HAProxy负载均衡器，来提供基于HTTP / HTTPS / TCP主机名/路径的路由。</p>
+<p>HAProxy提供高可用性、负载均衡以及基于TCP和HTTP应用的代理，支持虚拟主机，它是免费、快速并且可靠的一种解决方案。</p>
+<h3 id="rancher-20">Rancher 2.0</h3>
+<p>通过Rancher 2.0，用户可以开箱即用地使用由NGINX Ingress Controller支持的原生Kubernetes Ingress功能进行7层负载均衡，因为Kubernetes Ingress仅支持HTTP和HTTPS协议。对于TCP协议，Rancher 2.0支持在部署Kubernetes集群的云上配置第4层TCP负载均衡器。</p>
+<blockquote>
+<p>Ingress只是一种规则，控制器组件会将这一规则应用于实际负载均衡器中。实际负载均衡器可以在集群外部运行，也可以在集群中部署。</p>
+</blockquote>
+<h3 id="haproxykeepalived实现高可用负载均衡">HAProxy+Keepalived实现高可用负载均衡</h3>
+<p>软件负载均衡一般通过两种方式来实现：基于操作系统的软负载实现和基于第三方应用的软负载实现。LVS就是基于Linux操作系统实现的一种软负载，HAProxy就是开源的并且基于第三应用实现的软负载。</p>
 
         </div>
 
@@ -199,7 +198,7 @@ C1: [t0p1, t1p0, t1p2]</p>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/">掌握核心技术之Kubernetes</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">掌握核心技术之Kafka</a></li>
         
     </ul>
 </div>
@@ -209,7 +208,7 @@ C1: [t0p1, t1p0, t1p2]</p>
             
             <ul class="clearfix">
                 
-                <li><a href='/tags/kafka'>Kafka</a></li>
+                <li><a href='/tags/kubernetes'>Kubernetes</a></li>
                 
             </ul>
             

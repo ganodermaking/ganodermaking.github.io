@@ -84,7 +84,28 @@
         
         
         <div class="post-content">
-            <h2 id="服务网关">服务网关</h2>
+            <h2 id="云原生">云原生</h2>
+<p>云原生以容器、微服务、DevOps等技术为基础建立的一套云技术产品体系。云原生的四大特征：</p>
+<ul>
+<li>微服务</li>
+<li>容器化</li>
+<li>DevOps</li>
+<li>持续集成/交付</li>
+</ul>
+<h2 id="pod-两种探针">Pod 两种探针</h2>
+<p>LivenessProbe（存活探针）： 用于判断容器中应用是否正常运行。决定是否重启容器。</p>
+<p>ReadinessProbe（就绪探针）： 用于判断容器中应用是否启动完成，决定是否将请求转发给容器。</p>
+<p>目前 LivenessProbe 和 ReadinessProbe 两种探针都支持下面三种探测方法：</p>
+<ul>
+<li>httpGet：向容器发送Http Get请求，调用成功（通过Http状态码判断）则确定Pod就绪；</li>
+<li>exec：在容器内执行某命令，命令执行成功（通过命令退出状态码为0判断）则确定Pod就绪；</li>
+<li>tcpSocket：打开一个TCP连接到容器的指定端口，连接成功建立则确定Pod就绪。</li>
+</ul>
+<h2 id="iaaspaassaas-的区别">IaaS，PaaS，SaaS 的区别</h2>
+<p>IaaS：基础设施服务，Infrastructure-as-a-service
+PaaS：平台服务，Platform-as-a-service
+SaaS：软件服务，Software-as-a-service</p>
+<h2 id="服务网关">服务网关</h2>
 <p>服务网关 = 路由转发 + 过滤器
 
         <img class="mx-auto" alt="" src="/images/%e6%9c%8d%e5%8a%a1%e7%bd%91%e5%85%b3%e6%9e%b6%e6%9e%84%e5%9b%be.png" />   
@@ -121,14 +142,23 @@
 <h4 id="disconf怎么做到数据持久化">Disconf怎么做到数据持久化？</h4>
 <p>在配置中心添加的配置数据都被持久化到了DB中，每次客户端启动的时候会调用Disconf的Http接口获取最新的配置。</p>
 <h3 id="携程apollo">携程Apollo</h3>
-<p>Apollo的基础模型：</p>
+<p>Apollo配置中心动态生效机制，是基于Http长轮询请求。
+Apollo的基础模型：</p>
 <ul>
 <li>用户在配置中心对配置进行修改并发布</li>
 <li>配置中心通知Apollo客户端有配置更新</li>
 <li>Apollo客户端从配置中心拉取最新的配置、更新本地配置并通知到应用</li>
 </ul>
+<p>Http长轮询：
+Http长轮询是服务器收到请求后如果有数据，立刻响应请求；如果没有数据就会 hold 一段时间，这段时间内如果有数据立刻响应请求；如果时间到了还没有数据, 则响应 http 请求；浏览器受到 http 响应后立在发送一个同样 http 请求查询是否有数据。</p>
 <h3 id="阿里diamond">阿里Diamond</h3>
 <h3 id="spring-cloud-config">spring cloud config</h3>
+<h2 id="分布式id">分布式ID</h2>
+<ul>
+<li>数据库自增ID</li>
+<li>Redis原子性自增</li>
+<li>UUID：https://github.com/satori/go.uuid</li>
+</ul>
 <h2 id="秒杀方案">秒杀方案</h2>
 <h3 id="前端方案">前端方案</h3>
 <p>浏览器端(js)：</p>
@@ -146,7 +176,26 @@
 <li>利用缓存应对读请求：对类似于12306等购票业务，是典型的读多写少业务，大部分请求是查询请求，所以可以利用缓存分担数据库压力。</li>
 <li>利用缓存应对写请求：缓存也是可以应对写请求的，比如我们就可以把数据库中的库存数据转移到Redis缓存中，所有减库存操作都在Redis中进行，然后再通过后台进程把Redis中的用户秒杀请求同步到数据库中。</li>
 </ul>
+<h2 id="服务雪崩">服务雪崩</h2>
+<p>如下图所示，一个服务失败，导致整条链路的服务都失败的情形，我们称之为服务雪崩。
+
+        <img class="mx-auto" alt="" src="/images/%e6%9c%8d%e5%8a%a1%e9%9b%aa%e5%b4%a9.jpeg" />   
+    </p>
+<blockquote>
+<p>那么，服务熔断和服务降级就可以视为解决服务雪崩的手段之一。</p>
+</blockquote>
 <h2 id="熔断vs降级">熔断VS降级</h2>
+<p>服务熔断：当下游的服务因为某种原因突然变得不可用或响应过慢，上游服务为了保证自己整体服务的可用性，不再继续调用目标服务，直接返回，快速释放资源。如果目标服务情况好转则恢复调用。</p>
+<p>服务降级：</p>
+<ul>
+<li>当下游的服务因为某种原因响应过慢，下游服务主动停掉一些不太重要的业务，释放出服务器资源，增加响应速度！</li>
+<li>当下游的服务因为某种原因不可用，上游主动调用本地的一些降级逻辑，避免卡顿，迅速返回给用户！</li>
+</ul>
+<p>其实应该要这么理解：</p>
+<ul>
+<li>服务降级有很多种降级方式！如开关降级、限流降级、熔断降级!</li>
+<li>服务熔断属于降级方式的一种！</li>
+</ul>
 <p>相同点：</p>
 <ul>
 <li>目标一致，都是从可用性和可靠性出发，为了防止系统崩溃；</li>
@@ -156,6 +205,11 @@
 <ul>
 <li>触发原因不同，服务熔断一般是某个服务（下游服务）故障引起，而服务降级一般是从整体负荷考虑；</li>
 </ul>
+<h2 id="蓝绿部署和灰度发布">蓝绿部署和灰度发布</h2>
+<p>蓝绿部署：
+在蓝绿发布过程中，有两套生产环境：蓝环境和绿环境。蓝色是当前版本并拥有实时流量，绿色是包含更新代码的环境。无论任何时候，只有一套环境有实时流量。</p>
+<p>灰度发布(金丝雀发布)：
+与蓝绿部署不同的是，流量是逐渐迁移到更新的代码。一开始是1%，然后10%、25%，以此类推，直至100%。</p>
 
         </div>
 
@@ -168,9 +222,9 @@
     <h2>See Also</h2>
     <ul class="listing">
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95/">掌握核心技术之算法</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%AE%97%E6%B3%95%E7%AF%87/">掌握核心技术之算法</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%BD%91%E7%BB%9C/">掌握核心技术之网络</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8B%E7%BD%91%E7%BB%9C%E7%AF%87/">掌握核心技术之网络</a></li>
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Belasticsearch/">掌握核心技术之ElasticSearch</a></li>
         
@@ -271,6 +325,14 @@
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之Kafka">掌握核心技术之Kafka</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/" title="掌握核心技术之Kubernetes">掌握核心技术之Kubernetes</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title="掌握核心技术之MongoDB">掌握核心技术之MongoDB</a>
     </li>
     
@@ -286,14 +348,6 @@
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title="掌握核心技术之Zookeeper">掌握核心技术之Zookeeper</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -307,7 +361,7 @@
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (9)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -331,6 +385,8 @@
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
     <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
+    <a href="http://ganodermaking.github.io/tags/kubernetes/">Kubernetes</a>
     
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     

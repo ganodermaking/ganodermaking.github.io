@@ -95,6 +95,7 @@
 <li>MySQL主从同步</li>
 <li>MySQL索引</li>
 <li>Online DDL</li>
+<li>Innodb 数据页</li>
 </ul>
 <h2 id="mysql架构">MySQL架构</h2>
 <p>
@@ -124,7 +125,8 @@ insert into orders(id, item_id) values(null, 100);
 // step3: 修改商品的库存
 update items set quantity = quantity - 2 where id = 100;
 </code></pre></div><blockquote>
-<p>MySQL中用悲观锁务必须确定走了索引，而不是全表扫描，否则将会将整个数据表锁住。</p>
+<p>MySQL中用悲观锁务必须确定走了索引，而不是全表扫描，否则将会将整个数据表锁住。
+要使用悲观锁，我们必须关闭mysql数据库的自动提交属性，因为MySQL默认使用autocommit模式，也就是说，当你执行一个更新操作后，MySQL会立刻将结果进行提交。</p>
 </blockquote>
 <h3 id="乐观锁">乐观锁</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">// step1: 查询出商品信息
@@ -146,9 +148,9 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </ul>
 <h3 id="事务的并发问题">事务的并发问题</h3>
 <ul>
-<li>脏读：事务A读取了事务B更新的数据，然后B回滚操作，那么A读取到的数据是脏数据</li>
-<li>不可重复读：事务 A 多次读取同一数据，事务 B 在事务A多次读取的过程中，对数据作了更新并提交，导致事务A多次读取同一数据时，结果不一致</li>
-<li>幻读：系统管理员A将数据库中所有学生的成绩从具体分数改为ABCDE等级，但是系统管理员B就在这个时候插入了一条具体分数的记录，当系统管理员A改结束后发现还有一条记录没有改过来，就好像发生了幻觉一样，这就叫幻读</li>
+<li>脏读：事务A读取了事务B更新的数据，然后B回滚操作，那么A读取到的数据是脏数据；</li>
+<li>不可重复读：事务 A 多次读取同一数据，事务 B 在事务A多次读取的过程中，对数据作了更新并提交，导致事务A多次读取同一数据时，结果不一致；</li>
+<li>幻读：系统管理员A将数据库中所有学生的成绩从具体分数改为ABCDE等级，但是系统管理员B就在这个时候插入了一条具体分数的记录，当系统管理员A改结束后发现还有一条记录没有改过来，就好像发生了幻觉一样，这就叫幻读；</li>
 </ul>
 <blockquote>
 <p>不可重复读的和幻读很容易混淆，不可重复读侧重于修改，幻读侧重于新增或删除。解决不可重复读的问题只需锁住满足条件的行，解决幻读需要锁表</p>
@@ -199,6 +201,9 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>修改时Copy出当前版本随意修改，各个事务之间无干扰</li>
 <li>保存时比较版本号，如果成功（commit），则覆盖原记录；失败则放弃copy（rollback）</li>
 </ul>
+<blockquote>
+<p>整个MVCC的关键就是通过事务ID和指向UndoLog的指针这两个隐藏列来实现的。InnoDB中通过Undo Log实现数据的多版本，而并发控制通过锁来实现。Undo Log除了实现MVCC外，还用于事务的回滚。</p>
+</blockquote>
 <h2 id="mysql主从同步">MySQL主从同步</h2>
 <p>
         <img class="mx-auto" alt="" src="/images/MySQL%e4%b8%bb%e4%bb%8e%e5%90%8c%e6%ad%a5%e5%8e%9f%e7%90%86%e5%9b%be.png" />   
@@ -207,27 +212,34 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>主库会生成一个log dump线程，用来给从库I/O线程传binlog。</li>
 <li>从库会生成两个线程，一个I/O线程，一个SQL线程；I/O线程会去请求主库的binlog，并将得到的binlog写到本地的relay-log(中继日志)文件中；SQL线程，会读取relay log文件中的日志，并解析成sql语句逐一执行。</li>
 </ul>
+<p>
+        <img class="mx-auto" alt="" src="/images/MySQL%e4%b8%bb%e4%bb%8e%e5%90%8c%e6%ad%a5%e7%ba%bf%e7%a8%8b%e5%9b%be.jpeg" />   
+    
+MySQL 主从复制，涉及主从两个节点，一共四个四个线程参与其中：</p>
+<ul>
+<li>主节点的 Client Thread，处理客户端请求的线程，执行如图所示的1~5步骤，2，3，4步骤是为了保证数据的一致性和尽量减少丢失，第三步骤时会通知 Dump Thread；</li>
+<li>主节点的 Dump Thread，接收到 Client Thread 通知后，负责读取本地的 binlog 的数据，将 binlog 数据，binlog 文件名 以及当前发送 binlog 的位置信息发送给从节点；</li>
+<li>从节点的 IO Thread 负责接收 Dump Thread 发送的 binlog 数据和相关位置信息，将其追加到本地的 relay log 等文件中；</li>
+<li>从节点的 SQL Thread 检测到 relay log 追加了新数据，则解析其内容(其实就是解析 binlog 文件的内容)为可以执行的 SQL 语句，然后在本地数据执行，并记录下当前执行的 relay log 位置。</li>
+</ul>
+<p>从主节点提交成功到从节点同步完成，中间间隔了6，7，8，9，10多个步骤，涉及到一次网络传输，多次文件读取和写入的磁盘 IO 操作，以及最后的 SQL 执行的 CPU 操作。当主从节点间网络传输出现问题，或者从节点性能较低时，主从节点间的同步就会出现延迟。</p>
 <h2 id="mysql索引">MySQL索引</h2>
-<h4 id="myisam主键索引">MyISAM主键索引</h4>
-<p>MyISAM引擎使用B+树作为索引结果，叶节点的data域存放的是数据记录的地址。
+<h4 id="myisam索引">MyISAM索引</h4>
+<p>MyISAM引擎使用B+树作为索引结果，叶节点的data域存放的是数据记录的地址。在MyISAM中，主索引和辅助索引在结构上没有任何区别，只是主索引要求key是唯一的，而辅助索引的key可以重复。
 
         <img class="mx-auto" alt="" src="/images/MyISAM%e4%b8%bb%e9%94%ae%e7%b4%a2%e5%bc%95.png" />   
-    </p>
-<h4 id="myisam辅助索引">MyISAM辅助索引</h4>
-<p>在MyISAM中，主索引和辅助索引在结构上没有任何区别，只是主索引要求key是唯一的，而辅助索引的key可以重复。
+    
 
         <img class="mx-auto" alt="" src="/images/MyISAM%e8%be%85%e5%8a%a9%e7%b4%a2%e5%bc%95.png" />   
     </p>
 <blockquote>
 <p>MyISAM中索引检索的算法为首先按照B+Tree搜索算法搜索索引，如果指定的Key存在，则取出其data域的值，然后以data域的值为地址，读取相应数据记录。</p>
 </blockquote>
-<h4 id="innodb主键索引">InnoDB主键索引</h4>
-<p>InnoDB表数据文件本身就是一个索引结构，树的叶节点data域保存了完整的数据记录，这种索引叫做聚集索引。
+<h4 id="innodb索引">InnoDB索引</h4>
+<p>InnoDB表数据文件本身就是一个索引结构，树的叶节点data域保存了完整的数据记录，这种索引叫做聚集索引。InnoDB的所有辅助索引都引用主键作为data域。
 
         <img class="mx-auto" alt="" src="/images//InnoDB%e4%b8%bb%e9%94%ae%e7%b4%a2%e5%bc%95.png" />   
-    </p>
-<h4 id="innodb辅助索引">InnoDB辅助索引</h4>
-<p>InnoDB的所有辅助索引都引用主键作为data域。
+    
 
         <img class="mx-auto" alt="" src="/images/InnoDB%e8%be%85%e5%8a%a9%e7%b4%a2%e5%bc%95.png" />   
     </p>
@@ -241,11 +253,9 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 </ul>
 <h4 id="myisam与innodb索引区别">MyISAM与InnoDB索引区别</h4>
 <ul>
-<li>锁：MyISAM使用的是表锁；InnoDB使用行锁。</li>
-<li>事务：MyISAM没有事务支持和MVCC；InnoDB支持事务和MVCC。</li>
-<li>外键：MyISAM不支持；InnoDB支持</li>
-<li>主键：MyISAM允许没有任何索引和主键的表存在，索引都是保存行的地址；InnoDB如果没有设定主键或非空唯一索引，就会自动生成一个6字节的主键，数据是主索引的一部分，附加索引保存的是主索引的值</li>
-<li>存储结构（主索引／辅助索引）：InnoDB的数据文件本身就是主键索引文件。而MyISAM的主索引和数据是分开的。InnoDB的辅助索引data域存储相应记录主键的值而不是地址。而MyISAM的辅助索引和主索引没有多大区别。innoDB是聚簇索引，数据挂在主键索引之下。</li>
+<li>锁：MyISAM支持表锁；InnoDB支持行锁；</li>
+<li>事务：MyISAM不支持事务和MVCC；InnoDB支持事务和MVCC(多版本并发控制)；</li>
+<li>外键：MyISAM不支持；InnoDB支持。</li>
 </ul>
 <blockquote>
 <p>Innodb支持事务和行级锁，是innodb的最大特色。</p>
@@ -293,6 +303,8 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
 <li>尽量选择访问量小的时段进行数据库操作，避开高峰时段</li>
 <li>操作数据库之前，查看是否还有未提交的事务</li>
 </ul>
+<h3 id="innodb-数据页">Innodb 数据页</h3>
+<p>页（Page）是 Innodb 存储引擎用于管理数据的最小磁盘单位，大小为16KB</p>
 
         </div>
 
@@ -313,7 +325,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
         
         <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bjava/">掌握核心技术之Java</a></li>
         
-        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/">掌握核心技术之MongoDB</a></li>
+        <li><a href="/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/">掌握核心技术之Kafka</a></li>
         
     </ul>
 </div>
@@ -408,6 +420,14 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     </li>
     
     <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之Kafka">掌握核心技术之Kafka</a>
+    </li>
+    
+    <li>
+        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkubernetes/" title="掌握核心技术之Kubernetes">掌握核心技术之Kubernetes</a>
+    </li>
+    
+    <li>
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bmongodb/" title="掌握核心技术之MongoDB">掌握核心技术之MongoDB</a>
     </li>
     
@@ -423,14 +443,6 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
         <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bredis/" title="掌握核心技术之Redis">掌握核心技术之Redis</a>
     </li>
     
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bzookeeper/" title="掌握核心技术之Zookeeper">掌握核心技术之Zookeeper</a>
-    </li>
-    
-    <li>
-        <a href="http://ganodermaking.github.io/post/%E6%8E%8C%E6%8F%A1%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B9%8Bkafka/" title="掌握核心技术之微服务">掌握核心技术之微服务</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -444,7 +456,7 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     
     <li><a href="http://ganodermaking.github.io/categories/java/">Java (1)</a></li>
     
-    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (8)</a></li>
+    <li><a href="http://ganodermaking.github.io/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件 (9)</a></li>
     
     <li><a href="http://ganodermaking.github.io/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务 (1)</a></li>
     
@@ -468,6 +480,8 @@ update items set quantity = quantity - 1, version = version + 1 where id = 100 a
     <a href="http://ganodermaking.github.io/tags/java/">Java</a>
     
     <a href="http://ganodermaking.github.io/tags/kafka/">Kafka</a>
+    
+    <a href="http://ganodermaking.github.io/tags/kubernetes/">Kubernetes</a>
     
     <a href="http://ganodermaking.github.io/tags/mongodb/">MongoDB</a>
     
